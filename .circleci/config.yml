@@ -1,0 +1,61 @@
+version: 2.1
+
+executors:
+  go:
+    docker:
+      - image: circleci/golang:1.17
+    environment:
+      CGO_ENABLED: 0
+
+jobs:
+  lint:
+    executor: go
+    steps:
+      - checkout
+      - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.45.2
+      - run: golangci-lint run -c .golangci.yml
+      - run: task check-go-mod
+
+  test:
+    executor: go
+    steps:
+      - checkout
+      - run: go install gotest.tools/gotestsum@1.8.1
+      - run: mkdir -p /tmp/test-results
+      - run: gotestsum --junitfile="{{.RESULTS_DIR}}"/results.xml ./... -race -count=1
+      - run:
+          name: Generate coverage report
+          command: |
+            go test ./... -coverprofile=coverage.out
+            go tool cover -html=coverage.out -o coverage.html
+            mv coverage.html /tmp/test-results
+      - store_artifacts:
+          path: /tmp/test-results
+      - store_test_results:
+          path: /tmp/test-results
+
+  publish:
+    executor: go
+    steps:
+      - checkout
+      - run:
+          name: Tag Repo
+          command: |
+            git config --global user.email $GH_EMAIL
+            git config --global user.name $GH_NAME
+            git tag -a "v0.0.$CIRCLE_BUILD_NUM" -m "Release v0.0.$CIRCLE_BUILD_NUM"
+            git push origin "v0.0.$CIRCLE_BUILD_NUM"
+
+workflows:
+  publish:
+    jobs:
+      - lint
+      - test
+      - publish:
+          requires:
+            - lint
+            - test
+          filters:
+            branches:
+              only:
+                - main
