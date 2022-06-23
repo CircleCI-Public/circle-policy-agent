@@ -20,7 +20,7 @@ jobs:
     executor: go
     steps:
       - checkout
-      - run: go install gotest.tools/gotestsum@1.8.1
+      - run: go install gotest.tools/gotestsum@v1.8.1
       - run: mkdir -p /tmp/test-results
       - run: gotestsum --junitfile="{{.RESULTS_DIR}}"/results.xml ./... -race -count=1
       - run:
