@@ -1,6 +1,6 @@
 module github.com/CircleCI-Public/circle-policy-agent
 
-go 1.18
+go 1.17
 
 require (
 	github.com/aws/aws-sdk-go v1.44.39
