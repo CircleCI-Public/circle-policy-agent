@@ -1,0 +1,8 @@
+version: '3'
+
+tasks:
+  test:
+    desc: Run the tests and output the test results
+    cmds:
+      - mkdir -p {{.RESULTS_DIR}}
+      - gotestsum --junitfile="{{.RESULTS_DIR}}"/results.xml ./... -race -count=1

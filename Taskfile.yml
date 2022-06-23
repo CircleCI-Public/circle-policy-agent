@@ -1,0 +1,48 @@
+version: '3'
+
+includes:
+  ci:
+    taskfile: ./Taskfile_CI.yml
+
+tasks:
+  lint:
+    desc: Lint code
+    cmds:
+      - golangci-lint run -c .golangci.yml
+    summary: Lint the project with golangci-lint
+
+  fmt:
+    desc: Run 'go fmt' to format the code
+    cmds:
+      - go fmt ./...
+
+  test:
+    desc: Run the tests
+    cmds:
+      - go test ./... -race -count=1
+
+  go-mod-tidy:
+    desc: Run 'go mod tidy' to clean up module files.
+    cmds:
+      - go mod tidy -v
+
+  doc:
+    desc: Run 'godoc', print docs url
+    cmds:
+      - |
+        godoc &
+        echo 'docs are open at:'
+        echo 'http://localhost:6060/pkg/github.com/CircleCI-Public/circle-policy-agent/'
+        wait
+
+  doc-open:
+    desc: Run 'godoc', open the docs url in your browser
+    cmds:
+      - sleep .5 && open 'http://localhost:6060/pkg/github.com/CircleCI-Public/circle-policy-agent/' &
+      - task: doc
+
+  check-go-mod:
+    desc: Check go.mod is tidy
+    cmds:
+      - go mod tidy -v
+      - git diff --exit-code -- go.mod go.sum

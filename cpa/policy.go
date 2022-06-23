@@ -1,0 +1,148 @@
+package cpa
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/rego"
+)
+
+type Policy struct {
+	compiler *ast.Compiler
+}
+
+// Eval will run native OPA against your document, input, and evaluate the query.
+// It returns raw OPA expression values.
+func (policy Policy) Eval(ctx context.Context, query string, input interface{}) (interface{}, error) {
+	input, err := convertYAMLMapKeyTypes(input, nil)
+	if err != nil {
+		return nil, fmt.Errorf("invalid value: %w", err)
+	}
+
+	q, err := rego.New(rego.Compiler(policy.compiler), rego.Query(query), rego.Input(input)).PrepareForEval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare context for evaluation: %w", err)
+	}
+
+	result, err := q.Eval(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var values []interface{}
+	for _, r := range result {
+		for _, exp := range r.Expressions {
+			values = append(values, exp.Value)
+		}
+	}
+
+	if len(values) == 1 {
+		return values[0], nil
+	}
+
+	return values, nil
+}
+
+// Decide takes an input and evaluates it against a policy.
+func (policy Policy) Decide(ctx context.Context, input interface{}) (*Decision, error) {
+	data, err := policy.Eval(ctx, "data", input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to evaluate the query: %w", err)
+	}
+
+	output, ok := data.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("unexpected opa output")
+	}
+
+	org, ok := output["org"].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("no org policy evaluations found")
+	}
+
+	enabledRules, err := asStringSlice(org["enable_rule"])
+	if err != nil {
+		return nil, fmt.Errorf("invalid enable_rule: %w", err)
+	}
+
+	hardFailRules, err := asStringSlice(org["hard_fail"])
+	if err != nil {
+		return nil, fmt.Errorf("invalid hard_fail: %w", err)
+	}
+
+	hardFailMap := make(map[string]struct{})
+	for _, rule := range hardFailRules {
+		hardFailMap[rule] = struct{}{}
+	}
+
+	decision := Decision{EnabledRules: enabledRules}
+
+	for _, rule := range enabledRules {
+		if _, ok := hardFailMap[rule]; ok {
+			decision.HardFailures = append(decision.HardFailures, extractViolations(org, rule)...)
+		} else {
+			decision.SoftFailures = append(decision.SoftFailures, extractViolations(org, rule)...)
+		}
+	}
+
+	switch {
+	case len(decision.HardFailures) > 0:
+		decision.Status = StatusHardFail
+	case len(decision.SoftFailures) > 0:
+		decision.Status = StatusSoftFail
+	default:
+		decision.Status = StatusPass
+	}
+
+	decision.sort()
+
+	return &decision, nil
+}
+
+func extractViolations(data map[string]interface{}, rule string) []Violation {
+	var violations []Violation
+
+	switch reasonsType := data[rule].(type) {
+	case []interface{}:
+		reasons, err := asStringSlice(reasonsType)
+		if err != nil {
+			break // TODO: should we fail if rules return non string reasons? Should we only report string reasons?
+		}
+		for _, reason := range reasons {
+			violations = append(violations, Violation{Rule: rule, Reason: reason})
+		}
+	case map[string]interface{}:
+		for _, value := range reasonsType {
+			reason, ok := value.(string)
+			if !ok {
+				continue // TODO what to do about non-string reasons?
+			}
+			violations = append(violations, Violation{Rule: rule, Reason: reason})
+		}
+	case string:
+		violations = append(violations, Violation{Rule: rule, Reason: reasonsType})
+	}
+
+	return violations
+}
+
+func asStringSlice(value interface{}) ([]string, error) {
+	if value == nil {
+		return nil, nil
+	}
+	values, ok := value.([]interface{})
+	if !ok {
+		return nil, errors.New("value is not a slice")
+	}
+
+	result := make([]string, 0, len(values))
+	for _, v := range values {
+		if s, ok := v.(string); ok {
+			result = append(result, s)
+		}
+	}
+
+	return result, nil
+}
