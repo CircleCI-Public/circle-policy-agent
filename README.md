@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/CircleCI-Public/circle-policy-agent/tree/main.svg?style=svg&circle-token=2b2f376a5a6ed8e77fa543586116a5879285986c)](https://circleci.com/gh/CircleCI-Public/circle-policy-agent/tree/main)
 
-The policy-agent is essentially a CircleCI-flavored wrapper library around the OPA, which will allow the users to write the policy documents in CircleCI terminology.
+The policy-agent is essentially a CircleCI-flavored wrapper library around the [Open Policy Agent](https://github.com/open-policy-agent/opa) (OPA), which will allow the users to write the policy documents in CircleCI terminology.
 
 policy-agent is responsible, at its core, for doing the following:
 
@@ -62,8 +62,8 @@ this code, please include `import data.circleci.config` in your Rego file.
 
 Currently supported helpers:
 
-- [jobs](./internal/helpers/docs/jobs.MD#jobs)
-  - [require_jobs](./internal/helpers/docs/jobs.MD#require_jobs)
+- [jobs](./internal/helpers/docs/jobs.md#jobs)
+  - [require_jobs](./internal/helpers/docs/jobs.md#require_jobs)
 - [orbs](./internal/helpers/docs/orbs.MD#orbs)
   - [require_orbs](./internal/helpers/docs/orbs.MD#require_orbs)
   - [require_orbs_version](./internal/helpers/docs/orbs.MD#require_orbs_version)

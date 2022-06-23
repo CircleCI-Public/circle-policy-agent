@@ -1,7 +1,8 @@
+// Package dependency helps when scanning this repository for vulnerable dependencies. Often, the scans will identify
+// vulnerabilities in transitive dependencies. Adding the dependency to the list in this package, and then pinning a
+// more recent (non-vulnerable) version of the dependency in the go.mod file resolves this issue.
 package dependency
 
-// For more information:
-// https://circleci.atlassian.net/wiki/spaces/SD/pages/6530269417/Upgrade+Direct+and+Transitive+Dependencies
 import (
 	// nolint:revive
 	_ "github.com/aws/aws-sdk-go"
