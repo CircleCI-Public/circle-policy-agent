@@ -39,12 +39,15 @@ jobs:
   publish:
     executor: go
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - '69:50:2f:53:40:38:a7:9c:42:1c:1e:6e:3e:fe:90:aa'
       - checkout
       - run:
           name: Tag Repo
           command: |
-            git config --global user.email $GH_EMAIL
-            git config --global user.name $GH_NAME
+            git config user.email "securityengineering@circleci.com"
+            git config user.name "Security-Engineering Bot"
             git tag -a "v0.0.$CIRCLE_BUILD_NUM" -m "Release v0.0.$CIRCLE_BUILD_NUM"
             git push origin "v0.0.$CIRCLE_BUILD_NUM"
 
