@@ -22,7 +22,7 @@ jobs:
       - checkout
       - run: go install gotest.tools/gotestsum@v1.8.1
       - run: mkdir -p /tmp/test-results
-      - run: gotestsum --junitfile="{{.RESULTS_DIR}}"/results.xml ./... -race -count=1
+      - run: CGO_ENABLED=1 gotestsum --junitfile="{{.RESULTS_DIR}}"/results.xml ./... -race -count=1
       - run:
           name: Generate coverage report
           command: |
