@@ -2,6 +2,8 @@ package cpa
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
@@ -138,4 +140,37 @@ func (err MultiError) Error() string {
 	default:
 		return fmt.Sprintf("%d error(s) occurred: %s", len(err), strings.Join(messages, "; "))
 	}
+}
+
+func LoadPolicyFile(filePath string) (*Policy, error) {
+	documentBundle := map[string]string{}
+	fileContent, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+	documentBundle[filepath.Base(filePath)] = string(fileContent)
+	return ParseBundle(documentBundle)
+}
+
+func LoadPolicyDirectory(directoryPath string) (*Policy, error) {
+	documentBundle := map[string]string{}
+	policyFiles, err := ioutil.ReadDir(directoryPath) //get list of all files in given directory path
+	if err != nil {
+		return nil, fmt.Errorf("failed to get list of policy files: %w", err)
+	}
+	if len(policyFiles) == 0 {
+		return nil, fmt.Errorf("no files found in: %s", directoryPath)
+	}
+	for _, f := range policyFiles {
+		if f.IsDir() {
+			continue
+		}
+		filePath := filepath.Join(directoryPath, f.Name()) //get absolute file path
+		fileContent, err := ioutil.ReadFile(filePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read file: %w", err)
+		}
+		documentBundle[f.Name()] = string(fileContent)
+	}
+	return ParseBundle(documentBundle)
 }

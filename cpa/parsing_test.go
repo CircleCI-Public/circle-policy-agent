@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestRegoParsing(t *testing.T) {
@@ -75,6 +77,76 @@ func TestRegoParsing(t *testing.T) {
 				if !strings.Contains(actual, expected) {
 					t.Fatalf("expected error %q but got %q", expected, actual)
 				}
+			}
+		})
+	}
+}
+
+func TestLoadPolicyFile(t *testing.T) {
+	testcases := []struct {
+		Name        string
+		FilePath    string
+		ExpectedErr string
+	}{
+		{
+			Name:        "fails on non-existing filePath",
+			FilePath:    "./testdata/does_not_exist",
+			ExpectedErr: "failed to read file: open ./testdata/does_not_exist: no such file or directory",
+		},
+		{
+			Name:        "fails if filePath is a directory",
+			FilePath:    "./testdata",
+			ExpectedErr: "failed to read file: read ./testdata: is a directory",
+		},
+		{
+			Name:     "successfully parses given filePath",
+			FilePath: "./testdata/multiple_policies/policy1.rego",
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.Name, func(t *testing.T) {
+			policy, err := LoadPolicyFile(tc.FilePath)
+
+			if tc.ExpectedErr == "" {
+				require.NoError(t, err)
+				require.NotNil(t, policy)
+			} else {
+				require.EqualError(t, err, tc.ExpectedErr)
+			}
+		})
+	}
+}
+
+func TestLoadPolicyDirectory(t *testing.T) {
+	testcases := []struct {
+		Name          string
+		DirectoryPath string
+		ExpectedErr   string
+	}{
+		{
+			Name:          "fails on non-existing directoryPath",
+			DirectoryPath: "./testdata/does_not_exist",
+			ExpectedErr:   "failed to get list of policy files: open ./testdata/does_not_exist: no such file or directory",
+		},
+		{
+			Name:          "fails if directoryPath is a file",
+			DirectoryPath: "./testdata/multiple_policies/policy1.rego",
+			ExpectedErr:   "failed to get list of policy files: readdirent ./testdata/multiple_policies/policy1.rego: not a directory",
+		},
+		{
+			Name:          "successfully parses given directoryPath",
+			DirectoryPath: "./testdata/multiple_policies",
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.Name, func(t *testing.T) {
+			policy, err := LoadPolicyDirectory(tc.DirectoryPath)
+
+			if tc.ExpectedErr == "" {
+				require.NoError(t, err)
+				require.NotNil(t, policy)
+			} else {
+				require.EqualError(t, err, tc.ExpectedErr)
 			}
 		})
 	}
