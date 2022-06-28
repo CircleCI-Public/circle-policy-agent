@@ -142,9 +142,10 @@ func (err MultiError) Error() string {
 	}
 }
 
+//LoadPolicyFile takes policy file path as an input, and returns parsed policy
 func LoadPolicyFile(filePath string) (*Policy, error) {
 	documentBundle := map[string]string{}
-	fileContent, err := ioutil.ReadFile(filePath)
+	fileContent, err := ioutil.ReadFile(filepath.Clean(filePath))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
@@ -152,21 +153,20 @@ func LoadPolicyFile(filePath string) (*Policy, error) {
 	return ParseBundle(documentBundle)
 }
 
+//LoadPolicyDirectory takes path of directory containing policies as an input, and returns parsed policy
+//every file in the top-level of the directory (non-recursive) will be considered as a policy file for parsing
 func LoadPolicyDirectory(directoryPath string) (*Policy, error) {
 	documentBundle := map[string]string{}
 	policyFiles, err := ioutil.ReadDir(directoryPath) //get list of all files in given directory path
 	if err != nil {
 		return nil, fmt.Errorf("failed to get list of policy files: %w", err)
 	}
-	if len(policyFiles) == 0 {
-		return nil, fmt.Errorf("no files found in: %s", directoryPath)
-	}
 	for _, f := range policyFiles {
 		if f.IsDir() {
 			continue
 		}
 		filePath := filepath.Join(directoryPath, f.Name()) //get absolute file path
-		fileContent, err := ioutil.ReadFile(filePath)
+		fileContent, err := ioutil.ReadFile(filepath.Clean(filePath))
 		if err != nil {
 			return nil, fmt.Errorf("failed to read file: %w", err)
 		}
