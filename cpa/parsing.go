@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/CircleCI-Public/circle-policy-agent/internal/helpers"
 	"github.com/open-policy-agent/opa/ast"
+
+	"github.com/CircleCI-Public/circle-policy-agent/internal/helpers"
 )
 
 // This function has been stolen from the OPA codebase, ast/parser.go:2210 for
@@ -57,11 +58,6 @@ func AllowedPackages(names ...string) LintRule {
 	}
 }
 
-// ParseRego will parse a rego document, validating it, and compiling it.
-func ParseRego(filename, rego string, rules ...LintRule) (*Policy, error) {
-	return ParseBundle(map[string]string{filename: rego}, rules...)
-}
-
 func shouldImportConfigHelpers(mods map[string]*ast.Module) bool {
 	for _, m := range mods {
 		for _, i := range m.Imports {
@@ -73,8 +69,8 @@ func shouldImportConfigHelpers(mods map[string]*ast.Module) bool {
 	return false
 }
 
-// ParseBundle will parse multiple rego files together into a bundle
-func ParseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
+// parseBundle will parse multiple rego files together into a bundle
+func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 	moduleMap := make(map[string]*ast.Module, len(bundle))
 
 	var multiErr MultiError
@@ -120,10 +116,10 @@ func ParseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 }
 
 //nolint:lll
-// ParsePolicy will restrict package name to 'org'. This allows us to more easily extract information from the OPA output after evaluating a
+// ParseBundle will restrict package name to 'org'. This allows us to more easily extract information from the OPA output after evaluating a
 // policy, because we know what the keys will be in the map that contains the results (e.g., map["org"]["enable_rule"] to find enabled rules).
-func ParsePolicy(files map[string]string) (*Policy, error) {
-	return ParseBundle(files, AllowedPackages("org"))
+func ParseBundle(files map[string]string) (*Policy, error) {
+	return parseBundle(files, AllowedPackages("org"))
 }
 
 type MultiError []error

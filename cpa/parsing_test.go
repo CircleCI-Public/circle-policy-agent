@@ -60,7 +60,7 @@ func TestRegoParsing(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			_, err := ParseRego("test.rego", tc.Document, tc.LintRules...)
+			_, err := parseBundle(map[string]string{"test.rego": tc.Document}, tc.LintRules...)
 
 			if tc.Error == nil && err != nil {
 				t.Fatalf("expected no error but got: %v", err)

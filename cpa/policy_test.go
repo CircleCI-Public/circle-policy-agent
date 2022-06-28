@@ -50,7 +50,7 @@ func TestParsePolicy(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			_, err := ParsePolicy(tc.DocumentBundle)
+			_, err := ParseBundle(tc.DocumentBundle)
 
 			if tc.Error == nil && err != nil {
 				t.Fatalf("expected no error but got: %v", err)
@@ -93,7 +93,7 @@ func TestDocumentQuery(t *testing.T) {
 		},
 	}
 
-	doc, err := ParseRego("test.rego", `
+	doc, err := parseBundle(map[string]string{"test.rego": `
 		package test
 		import future.keywords
 
@@ -110,7 +110,7 @@ func TestDocumentQuery(t *testing.T) {
 			some name in names;
 			not product[name]
 		}
-	`)
+	`})
 
 	if err != nil {
 		t.Fatalf("failed to parse rego document for testing: %v", err)
@@ -157,7 +157,7 @@ func TestBundleQuery(t *testing.T) {
 		},
 	}
 
-	doc, err := ParseBundle(map[string]string{
+	doc, err := parseBundle(map[string]string{
 		"helper.rego": `
 			package helper
 			names[name] {
