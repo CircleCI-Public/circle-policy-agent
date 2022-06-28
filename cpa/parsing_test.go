@@ -91,12 +91,12 @@ func TestLoadPolicyFile(t *testing.T) {
 		{
 			Name:        "fails on non-existing filePath",
 			FilePath:    "./testdata/does_not_exist",
-			ExpectedErr: "failed to read file: open ./testdata/does_not_exist: no such file or directory",
+			ExpectedErr: "failed to read file: open testdata/does_not_exist: no such file or directory",
 		},
 		{
 			Name:        "fails if filePath is a directory",
 			FilePath:    "./testdata",
-			ExpectedErr: "failed to read file: read ./testdata: is a directory",
+			ExpectedErr: "failed to read file: read testdata: is a directory",
 		},
 		{
 			Name:     "successfully parses given filePath",
