@@ -492,7 +492,7 @@ func TestDecide(t *testing.T) {
 						t.Fatalf("invalid config: %v", err)
 					}
 
-					doc, err := ParseRego("test.rego", tc.Document)
+					doc, err := parseBundle(map[string]string{"test.rego": tc.Document})
 					if err != nil {
 						t.Fatalf("failed to parse rego document for testing: %v", err)
 					}
