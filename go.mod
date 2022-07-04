@@ -7,7 +7,7 @@ require (
 	github.com/containerd/containerd v1.6.6
 	github.com/emicklei/go-restful v2.15.0+incompatible
 	github.com/open-policy-agent/opa v0.41.0
-	github.com/stretchr/testify v1.7.4
+	github.com/stretchr/testify v1.8.0
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	golang.org/x/text v0.3.7
 	gopkg.in/yaml.v2 v2.4.0
