@@ -14,7 +14,7 @@ type Policy struct {
 	compiler *ast.Compiler
 }
 
-// Eval will run native OPA against your document, input, and evaluate the query.
+// Eval will run native OPA query against your document, input, and apply any evaluation options.
 // It returns raw OPA expression values.
 func (policy Policy) Eval(ctx context.Context, query string, input interface{}, opts ...EvalOption) (interface{}, error) {
 	input, err := convertYAMLMapKeyTypes(input, nil)
@@ -61,7 +61,7 @@ func (policy Policy) Eval(ctx context.Context, query string, input interface{}, 
 	return values, nil
 }
 
-// Decide takes an input and evaluates it against a policy.
+// Decide takes an input and evaluates it against a policy. Evaluation options will be passed down to policy.Eval
 func (policy Policy) Decide(ctx context.Context, input interface{}, opts ...EvalOption) (*Decision, error) {
 	data, err := policy.Eval(ctx, "data", input, opts...)
 	if err != nil {
