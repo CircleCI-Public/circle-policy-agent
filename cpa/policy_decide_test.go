@@ -10,6 +10,14 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type DecideTestCase struct {
+	Name     string
+	Document string
+	Config   string
+	Error    error
+	Decision *Decision
+}
+
 var lintingCases = []DecideTestCase{
 	{
 		Name:     "error if package name is not org",
