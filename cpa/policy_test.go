@@ -111,7 +111,6 @@ func TestDocumentQuery(t *testing.T) {
 			not product[name]
 		}
 	`})
-
 	if err != nil {
 		t.Fatalf("failed to parse rego document for testing: %v", err)
 	}
@@ -181,7 +180,6 @@ func TestBundleQuery(t *testing.T) {
 			}
 		`,
 	})
-
 	if err != nil {
 		t.Fatalf("failed to parse bundle for testing: %v", err)
 	}
@@ -206,10 +204,24 @@ func TestBundleQuery(t *testing.T) {
 	)
 }
 
-type DecideTestCase struct {
-	Name     string
-	Document string
-	Config   string
-	Error    error
-	Decision *Decision
+func TestMeta(t *testing.T) {
+	policy, err := ParseBundle(map[string]string{
+		"test.rego": `
+			package org
+			
+			meta = data.meta
+		`,
+	})
+
+	require.NoError(t, err)
+
+	metadata := map[string]interface{}{
+		"key":  "value",
+		"test": true,
+	}
+
+	value, err := policy.Eval(context.Background(), "data.org.meta", nil, Meta(metadata))
+	require.NoError(t, err)
+
+	require.EqualValues(t, metadata, value)
 }

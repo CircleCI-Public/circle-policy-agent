@@ -131,7 +131,7 @@ func TestLoadPolicyDirectory(t *testing.T) {
 		{
 			Name:          "fails if directoryPath is a file",
 			DirectoryPath: "./testdata/multiple_policies/policy1.rego",
-			ExpectedErr:   "failed to get list of policy files: readdirent ./testdata/multiple_policies/policy1.rego: not a directory",
+			ExpectedErr:   "./testdata/multiple_policies/policy1.rego: not a directory",
 		},
 		{
 			Name:          "successfully parses given directoryPath",
@@ -146,7 +146,8 @@ func TestLoadPolicyDirectory(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, policy)
 			} else {
-				require.EqualError(t, err, tc.ExpectedErr)
+				require.NotNil(t, err, "expected error to not be nil")
+				require.Contains(t, err.Error(), tc.ExpectedErr)
 			}
 		})
 	}

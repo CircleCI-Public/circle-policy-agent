@@ -7,21 +7,37 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/storage/inmem"
 )
 
 type Policy struct {
 	compiler *ast.Compiler
 }
 
-// Eval will run native OPA against your document, input, and evaluate the query.
+// Eval will run native OPA query against your document, input, and apply any evaluation options.
 // It returns raw OPA expression values.
-func (policy Policy) Eval(ctx context.Context, query string, input interface{}) (interface{}, error) {
+func (policy Policy) Eval(ctx context.Context, query string, input interface{}, opts ...EvalOption) (interface{}, error) {
 	input, err := convertYAMLMapKeyTypes(input, nil)
 	if err != nil {
 		return nil, fmt.Errorf("invalid value: %w", err)
 	}
 
-	q, err := rego.New(rego.Compiler(policy.compiler), rego.Query(query), rego.Input(input)).PrepareForEval(ctx)
+	var options evalOptions
+	for _, apply := range opts {
+		apply(&options)
+	}
+
+	regoOptions := []func(*rego.Rego){
+		rego.Compiler(policy.compiler),
+		rego.Query(query),
+		rego.Input(input),
+	}
+
+	if options.storage != nil {
+		regoOptions = append(regoOptions, rego.Store(inmem.NewFromObject(options.storage)))
+	}
+
+	q, err := rego.New(regoOptions...).PrepareForEval(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare context for evaluation: %w", err)
 	}
@@ -45,9 +61,9 @@ func (policy Policy) Eval(ctx context.Context, query string, input interface{}) 
 	return values, nil
 }
 
-// Decide takes an input and evaluates it against a policy.
-func (policy Policy) Decide(ctx context.Context, input interface{}) (*Decision, error) {
-	data, err := policy.Eval(ctx, "data", input)
+// Decide takes an input and evaluates it against a policy. Evaluation options will be passed down to policy.Eval
+func (policy Policy) Decide(ctx context.Context, input interface{}, opts ...EvalOption) (*Decision, error) {
+	data, err := policy.Eval(ctx, "data", input, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to evaluate the query: %w", err)
 	}
