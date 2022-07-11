@@ -28,6 +28,13 @@ var lintingCases = []DecideTestCase{
 
 var outputStructureCases = []DecideTestCase{
 	{
+		Name:     "trivial pass if no policy",
+		Document: "",
+		Config:   "input: any",
+		Error:    nil,
+		Decision: &Decision{Status: StatusPass},
+	},
+	{
 		Name: "hard failure when an enabled hard_fail rule is violated",
 		Document: `
 			package org
@@ -500,7 +507,12 @@ func TestDecide(t *testing.T) {
 						t.Fatalf("invalid config: %v", err)
 					}
 
-					doc, err := parseBundle(map[string]string{"test.rego": tc.Document})
+					bundle := map[string]string{}
+					if tc.Document != "" {
+						bundle["test.rego"] = tc.Document
+					}
+
+					doc, err := parseBundle(bundle)
 					if err != nil {
 						t.Fatalf("failed to parse rego document for testing: %v", err)
 					}

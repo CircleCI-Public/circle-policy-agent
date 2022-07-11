@@ -3,17 +3,17 @@ module github.com/CircleCI-Public/circle-policy-agent
 go 1.17
 
 require (
-	github.com/aws/aws-sdk-go v1.44.40
+	github.com/aws/aws-sdk-go v1.44.52
 	github.com/containerd/containerd v1.6.6
-	github.com/emicklei/go-restful v2.15.0+incompatible
-	github.com/open-policy-agent/opa v0.41.0
-	github.com/stretchr/testify v1.7.4
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
+	github.com/emicklei/go-restful v2.16.0+incompatible
+	github.com/open-policy-agent/opa v0.42.1
+	github.com/stretchr/testify v1.8.0
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 	golang.org/x/text v0.3.7
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/client-go v0.24.2
-	k8s.io/kube-openapi v0.0.0-20220621154418-c39d0f63fac8
+	k8s.io/kube-openapi v0.0.0-20220627174259-011e075b9cb8
 )
 
 require (
@@ -42,7 +42,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.15.6 // indirect
+	github.com/klauspost/compress v1.15.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/moby/locker v1.0.1 // indirect
 	github.com/moby/sys/mountinfo v0.6.2 // indirect
@@ -58,15 +58,15 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/vektah/gqlparser/v2 v2.4.5 // indirect
+	github.com/vektah/gqlparser/v2 v2.4.6 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/yashtewari/glob-intersection v0.1.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/net v0.0.0-20220621193019-9d032be2e588 // indirect
+	golang.org/x/net v0.0.0-20220708220712-1185a9018129 // indirect
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
-	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
-	google.golang.org/genproto v0.0.0-20220622131801-db39fadba55f // indirect
+	golang.org/x/sys v0.0.0-20220708085239-5a0f0661e09d // indirect
+	google.golang.org/genproto v0.0.0-20220711200234-e2551ce405a2 // indirect
 	google.golang.org/grpc v1.47.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 )
