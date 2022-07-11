@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/aws/aws-sdk-go v1.44.40
 	github.com/containerd/containerd v1.6.6
-	github.com/emicklei/go-restful v2.15.0+incompatible
+	github.com/emicklei/go-restful v2.16.0+incompatible
 	github.com/open-policy-agent/opa v0.41.0
 	github.com/stretchr/testify v1.7.4
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
