@@ -63,6 +63,10 @@ func (policy Policy) Eval(ctx context.Context, query string, input interface{}, 
 
 // Decide takes an input and evaluates it against a policy. Evaluation options will be passed down to policy.Eval
 func (policy Policy) Decide(ctx context.Context, input interface{}, opts ...EvalOption) (*Decision, error) {
+	if len(policy.compiler.Modules) == 0 {
+		return &Decision{Status: StatusPass}, nil
+	}
+
 	data, err := policy.Eval(ctx, "data", input, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to evaluate the query: %w", err)

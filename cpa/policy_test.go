@@ -16,6 +16,11 @@ func TestParsePolicy(t *testing.T) {
 		Error          error
 	}{
 		{
+			Name:           "succeeds with no policies",
+			DocumentBundle: map[string]string{},
+			Error:          nil,
+		},
+		{
 			Name: "Successfully parses policy bundle when package name is org for all documents in the bundle",
 			DocumentBundle: map[string]string{
 				"test.rego": "package org",
