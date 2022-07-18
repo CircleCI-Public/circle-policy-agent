@@ -122,6 +122,16 @@ func TestParsePolicy(t *testing.T) {
 			},
 			Error: errors.New(`failed to parse bundle: policy "test" declared 2 times`),
 		},
+		{
+			Name: "fails if policy_name is not a string",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name = 3.14159
+				`,
+			},
+			Error: errors.New(`failed to parse file: "test.rego": invalid policy_name: json: cannot unmarshal number into Go value of type string`),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -314,4 +324,63 @@ func TestMeta(t *testing.T) {
 	require.NoError(t, err)
 
 	require.EqualValues(t, metadata, value)
+}
+
+func TestGetName(t *testing.T) {
+	testcases := []struct {
+		Name       string
+		Bundle     map[string]string
+		PolicyName string
+		Error      error
+	}{
+		{
+			Name:       "no name or error if no policies",
+			Bundle:     map[string]string{},
+			PolicyName: "",
+			Error:      nil,
+		},
+		{
+			Name: "gets proper name",
+			Bundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name = "name-test"
+				`,
+			},
+			PolicyName: "name-test",
+			Error:      nil,
+		},
+		{
+			Name: "no name or error if more than 1 policy",
+			Bundle: map[string]string{
+				"test1.rego": `
+					package org
+					policy_name = "test1"
+				`,
+				"test2.rego": `
+					package org
+					policy_name = "test2"
+				`,
+			},
+			PolicyName: "",
+			Error:      nil,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.Name, func(t *testing.T) {
+			policy, err := ParseBundle(tc.Bundle)
+			require.NoError(t, err)
+
+			name, err := policy.GetName()
+			require.Equal(t, tc.PolicyName, name)
+
+			if tc.Error != nil {
+				require.NotNil(t, err)
+				require.EqualError(t, err, tc.Error.Error())
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
