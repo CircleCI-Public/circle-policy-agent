@@ -21,7 +21,7 @@ func TestParsePolicy(t *testing.T) {
 			Error:          nil,
 		},
 		{
-			Name: "suceeds with proper policy",
+			Name: "succeeds with proper policy",
 			DocumentBundle: map[string]string{
 				"test.rego": `
 					package org
