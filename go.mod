@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.52
 	github.com/containerd/containerd v1.6.6
 	github.com/emicklei/go-restful v2.16.0+incompatible
-	github.com/open-policy-agent/opa v0.42.1
+	github.com/open-policy-agent/opa v0.42.2
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 	golang.org/x/text v0.3.7
