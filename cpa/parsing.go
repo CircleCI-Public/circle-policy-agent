@@ -2,7 +2,6 @@ package cpa
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -62,21 +61,23 @@ func AllowedPackages(names ...string) LintRule {
 	}
 }
 
+const policyName = "policy_name"
+
 func parsePolicyName(m *ast.Module) (string, error) {
 	if len(m.Rules) == 0 {
-		return "", fmt.Errorf("must declare rule %q but module contains no rules", "policy_name")
+		return "", fmt.Errorf("must declare rule %q but module contains no rules", policyName)
 	}
-	if name := m.Rules[0].Head.Name; name != "policy_name" {
-		return "", fmt.Errorf("first rule declaration must be %q but found %q", "policy_name", name)
+	if name := m.Rules[0].Head.Name; name != policyName {
+		return "", fmt.Errorf("first rule declaration must be %q but found %q", policyName, name)
 	}
 
 	var name string
 	if err := json.Unmarshal([]byte(m.Rules[0].Head.Value.String()), &name); err != nil {
-		return "", fmt.Errorf("invalid policy_name: %v", err)
+		return "", fmt.Errorf("invalid %s: %v", policyName, err)
 	}
 
 	if name == "" {
-		return "", errors.New("policy_name must not be empty")
+		return "", fmt.Errorf("%s must not be empty", policyName)
 	}
 
 	return name, nil
