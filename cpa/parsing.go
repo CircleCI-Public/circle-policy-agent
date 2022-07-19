@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
@@ -63,6 +64,8 @@ func AllowedPackages(names ...string) LintRule {
 
 const policyName = "policy_name"
 
+var policyNameExpr = regexp.MustCompile(`^\w+$`)
+
 func parsePolicyName(m *ast.Module) (string, error) {
 	if len(m.Rules) == 0 {
 		return "", fmt.Errorf("must declare rule %q but module contains no rules", policyName)
@@ -76,8 +79,14 @@ func parsePolicyName(m *ast.Module) (string, error) {
 		return "", fmt.Errorf("invalid %s: %v", policyName, err)
 	}
 
-	if name == "" {
+	if len(name) == 0 {
 		return "", fmt.Errorf("%s must not be empty", policyName)
+	}
+	if len(name) > 80 {
+		return "", fmt.Errorf("%s must be maximum 80 characters but got %d", policyName, len(name))
+	}
+	if !policyNameExpr.MatchString(name) {
+		return "", fmt.Errorf("%q must use alphanumeric and underscore characters only", policyName)
 	}
 
 	return name, nil

@@ -3,6 +3,7 @@ package cpa
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -131,6 +132,28 @@ func TestParsePolicy(t *testing.T) {
 				`,
 			},
 			Error: errors.New(`failed to parse file: "test.rego": invalid policy_name: json: cannot unmarshal number into Go value of type string`),
+		},
+		{
+			Name: "fails if policy_name is invalid string",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name = "!@3"
+				`,
+			},
+			Error: errors.New(`failed to parse policy file(s): failed to parse file: "test.rego": "policy_name" must use alphanumeric and underscore characters only`),
+		},
+		{
+			Name: "fails if policy_name is too long",
+			DocumentBundle: func() map[string]string {
+				return map[string]string{
+					"test.rego": fmt.Sprintf(`
+						package org
+						policy_name = %q
+					`, strings.Repeat("a", 81)),
+				}
+			}(),
+			Error: errors.New(`failed to parse policy file(s): failed to parse file: "test.rego": policy_name must be maximum 80 characters but got 81`),
 		},
 	}
 
@@ -344,10 +367,10 @@ func TestGetName(t *testing.T) {
 			Bundle: map[string]string{
 				"test.rego": `
 					package org
-					policy_name = "name-test"
+					policy_name = "name_test"
 				`,
 			},
-			PolicyName: "name-test",
+			PolicyName: "name_test",
 			Error:      nil,
 		},
 		{
