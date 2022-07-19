@@ -349,32 +349,32 @@ func TestMeta(t *testing.T) {
 	require.EqualValues(t, metadata, value)
 }
 
-func TestGetName(t *testing.T) {
+func TestGetSource(t *testing.T) {
 	testcases := []struct {
-		Name       string
-		Bundle     map[string]string
-		PolicyName string
-		Error      error
+		Name   string
+		Bundle map[string]string
+		Source map[string]string
 	}{
 		{
-			Name:       "no name or error if no policies",
-			Bundle:     map[string]string{},
-			PolicyName: "",
-			Error:      nil,
+			Name:   "empty source",
+			Bundle: map[string]string{},
+			Source: map[string]string{},
 		},
 		{
-			Name: "gets proper name",
+			Name: "gets source",
 			Bundle: map[string]string{
 				"test.rego": `
 					package org
 					policy_name = "name_test"
+					# some comment
 				`,
 			},
-			PolicyName: "name_test",
-			Error:      nil,
+			Source: map[string]string{
+				"name_test": "package org\n\npolicy_name = \"name_test\" { true }",
+			},
 		},
 		{
-			Name: "no name or error if more than 1 policy",
+			Name: "multiple source files",
 			Bundle: map[string]string{
 				"test1.rego": `
 					package org
@@ -385,8 +385,24 @@ func TestGetName(t *testing.T) {
 					policy_name = "test2"
 				`,
 			},
-			PolicyName: "",
-			Error:      nil,
+			Source: map[string]string{
+				"test1": "package org\n\npolicy_name = \"test1\" { true }",
+				"test2": "package org\n\npolicy_name = \"test2\" { true }",
+			},
+		},
+		{
+			Name: "bundle links helpers",
+			Bundle: map[string]string{
+				"test.rego": `
+					package org
+					import data.circleci.config
+					policy_name = "orbs"
+					versions = config.require_orbs_version([])
+				`,
+			},
+			Source: map[string]string{
+				"orbs": "package org\n\nimport data.circleci.config\n\npolicy_name = \"orbs\" { true }\nversions = config.require_orbs_version([]) { true }",
+			},
 		},
 	}
 
@@ -394,16 +410,7 @@ func TestGetName(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			policy, err := ParseBundle(tc.Bundle)
 			require.NoError(t, err)
-
-			name, err := policy.GetName()
-			require.Equal(t, tc.PolicyName, name)
-
-			if tc.Error != nil {
-				require.NotNil(t, err)
-				require.EqualError(t, err, tc.Error.Error())
-			} else {
-				require.NoError(t, err)
-			}
+			require.EqualValues(t, tc.Source, policy.Source())
 		})
 	}
 }

@@ -2,7 +2,6 @@ package cpa
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -13,23 +12,12 @@ import (
 
 type Policy struct {
 	compiler *ast.Compiler
+	source   map[string]string
 }
 
-// GetName returns the name of the policy declared by the rule "policy_name". This method function only on policies
-// comprising of one document, otherwise it returns an empty string.
-func (policy Policy) GetName() (string, error) {
-	if len(policy.compiler.Modules) != 1 {
-		return "", nil
-	}
-
-	var name string
-	for _, mod := range policy.compiler.Modules {
-		if err := json.Unmarshal([]byte(mod.Rules[0].Head.Value.String()), &name); err != nil {
-			return "", err
-		}
-	}
-
-	return name, nil
+// Source returns a map of policy_name to normalized rego source code used to build the policy
+func (policy Policy) Source() map[string]string {
+	return policy.source
 }
 
 // Eval will run native OPA query against your document, input, and apply any evaluation options.

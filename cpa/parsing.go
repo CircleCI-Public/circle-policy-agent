@@ -106,6 +106,7 @@ func shouldImportConfigHelpers(mods map[string]*ast.Module) bool {
 // parseBundle will parse multiple rego files together into a bundle
 func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 	moduleMap := make(map[string]*ast.Module, len(bundle))
+	source := make(map[string]string, len(bundle))
 	nameCount := make(map[string]uint32, len(bundle))
 
 	var multiErr MultiError
@@ -125,6 +126,7 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 
 		moduleMap[file] = mod
 		nameCount[name]++
+		source[name] = mod.String()
 	}
 
 	if len(multiErr) > 0 {
@@ -166,7 +168,7 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 		return nil, fmt.Errorf("failed to compile policy: %w", compiler.Errors)
 	}
 
-	return &Policy{compiler}, nil
+	return &Policy{compiler, source}, nil
 }
 
 //nolint:lll
