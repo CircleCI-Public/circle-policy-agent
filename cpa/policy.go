@@ -12,6 +12,12 @@ import (
 
 type Policy struct {
 	compiler *ast.Compiler
+	source   map[string]string
+}
+
+// Source returns a map of policy_name to normalized rego source code used to build the policy
+func (policy Policy) Source() map[string]string {
+	return policy.source
 }
 
 // Eval will run native OPA query against your document, input, and apply any evaluation options.

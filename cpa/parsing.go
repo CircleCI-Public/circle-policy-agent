@@ -1,9 +1,11 @@
 package cpa
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
@@ -60,6 +62,36 @@ func AllowedPackages(names ...string) LintRule {
 	}
 }
 
+const policyName = "policy_name"
+
+var policyNameExpr = regexp.MustCompile(`^\w+$`)
+
+func parsePolicyName(m *ast.Module) (string, error) {
+	if len(m.Rules) == 0 {
+		return "", fmt.Errorf("must declare rule %q but module contains no rules", policyName)
+	}
+	if name := m.Rules[0].Head.Name; name != policyName {
+		return "", fmt.Errorf("first rule declaration must be %q but found %q", policyName, name)
+	}
+
+	var name string
+	if err := json.Unmarshal([]byte(m.Rules[0].Head.Value.String()), &name); err != nil {
+		return "", fmt.Errorf("invalid %s: %v", policyName, err)
+	}
+
+	if len(name) == 0 {
+		return "", fmt.Errorf("%s must not be empty", policyName)
+	}
+	if len(name) > 80 {
+		return "", fmt.Errorf("%s must be maximum 80 characters but got %d", policyName, len(name))
+	}
+	if !policyNameExpr.MatchString(name) {
+		return "", fmt.Errorf("%q must use alphanumeric and underscore characters only", policyName)
+	}
+
+	return name, nil
+}
+
 func shouldImportConfigHelpers(mods map[string]*ast.Module) bool {
 	for _, m := range mods {
 		for _, i := range m.Imports {
@@ -74,19 +106,41 @@ func shouldImportConfigHelpers(mods map[string]*ast.Module) bool {
 // parseBundle will parse multiple rego files together into a bundle
 func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 	moduleMap := make(map[string]*ast.Module, len(bundle))
+	source := make(map[string]string, len(bundle))
+	nameCount := make(map[string]uint32, len(bundle))
 
 	var multiErr MultiError
+
 	for file, rego := range bundle {
 		mod, err := ast.ParseModule(file, rego)
 		if err != nil {
 			multiErr = append(multiErr, fmt.Errorf("failed to parse file %q: %w", file, err))
-		} else {
-			moduleMap[file] = mod
+			continue
 		}
+
+		name, err := parsePolicyName(mod)
+		if err != nil {
+			multiErr = append(multiErr, fmt.Errorf("failed to parse file: %q: %w", file, err))
+			continue
+		}
+
+		moduleMap[file] = mod
+		nameCount[name]++
+		source[name] = mod.String()
 	}
 
 	if len(multiErr) > 0 {
 		return nil, fmt.Errorf("failed to parse policy file(s): %w", multiErr)
+	}
+
+	for name, count := range nameCount {
+		if count > 1 {
+			multiErr = append(multiErr, fmt.Errorf("policy %q declared %d times", name, count))
+		}
+	}
+
+	if len(multiErr) > 0 {
+		return nil, fmt.Errorf("failed to parse bundle: %w", multiErr)
 	}
 
 	for filename, mod := range moduleMap {
@@ -114,7 +168,7 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 		return nil, fmt.Errorf("failed to compile policy: %w", compiler.Errors)
 	}
 
-	return &Policy{compiler}, nil
+	return &Policy{compiler, source}, nil
 }
 
 //nolint:lll
@@ -142,7 +196,7 @@ func (err MultiError) Error() string {
 	}
 }
 
-//LoadPolicyFile takes policy file path as an input, and returns parsed policy
+// LoadPolicyFile takes policy file path as an input, and returns parsed policy
 func LoadPolicyFile(filePath string) (*Policy, error) {
 	documentBundle := make(map[string]string, 1)
 	fileContent, err := os.ReadFile(filepath.Clean(filePath))
@@ -153,10 +207,10 @@ func LoadPolicyFile(filePath string) (*Policy, error) {
 	return ParseBundle(documentBundle)
 }
 
-//LoadPolicyDirectory takes path of directory containing policies as an input, and returns parsed policy
-//every file in the top-level of the directory (non-recursive) will be considered as a policy file for parsing
+// LoadPolicyDirectory takes path of directory containing policies as an input, and returns parsed policy
+// every file in the top-level of the directory (non-recursive) will be considered as a policy file for parsing
 func LoadPolicyDirectory(directoryPath string) (*Policy, error) {
-	policyFiles, err := os.ReadDir(directoryPath) //get list of all files in given directory path
+	policyFiles, err := os.ReadDir(directoryPath) // get list of all files in given directory path
 	if err != nil {
 		return nil, fmt.Errorf("failed to get list of policy files: %w", err)
 	}
@@ -165,7 +219,7 @@ func LoadPolicyDirectory(directoryPath string) (*Policy, error) {
 		if f.IsDir() {
 			continue
 		}
-		filePath := filepath.Join(directoryPath, f.Name()) //get absolute file path
+		filePath := filepath.Join(directoryPath, f.Name()) // get absolute file path
 		fileContent, err := os.ReadFile(filepath.Clean(filePath))
 		if err != nil {
 			return nil, fmt.Errorf("failed to read file: %w", err)

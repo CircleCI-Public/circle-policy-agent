@@ -3,6 +3,7 @@ package cpa
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -21,20 +22,48 @@ func TestParsePolicy(t *testing.T) {
 			Error:          nil,
 		},
 		{
+			Name: "succeeds with proper policy",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name = "test"
+				`,
+			},
+			Error: nil,
+		},
+		{
 			Name: "Successfully parses policy bundle when package name is org for all documents in the bundle",
 			DocumentBundle: map[string]string{
-				"test.rego": "package org",
-				"foo.rego":  "package org",
-				"bar.rego":  "package org",
+				"test.rego": `
+					package org
+					policy_name = "test_1"
+				`,
+				"foo.rego": `
+					package org
+					policy_name = "test_2"
+				`,
+				"bar.rego": `
+					package org
+					policy_name = "test_3"
+				`,
 			},
 			Error: nil,
 		},
 		{
 			Name: "Error when package name is not org for a document in the bundle",
 			DocumentBundle: map[string]string{
-				"bad.rego": "package bad",
-				"foo.rego": "package org",
-				"bar.rego": "package org",
+				"bad.rego": `
+					package bad
+					policy_name = "test_1"
+				`,
+				"foo.rego": `
+					package org
+					policy_name = "test_2"
+				`,
+				"bar.rego": `
+					package org
+					policy_name = "test_3"
+				`,
 			},
 			//nolint
 			Error: errors.New(`failed policy linting: lint error: "bad.rego": invalid package name: expected one of packages [org] but got "package bad"`),
@@ -46,10 +75,85 @@ func TestParsePolicy(t *testing.T) {
 					package org
 					import future.keywords
 					import data.circleci.config
+					policy_name = "test"
 					my_orbs := config.orbs
 				`,
 			},
 			Error: nil,
+		},
+		{
+			Name: "fails if no policy name",
+			DocumentBundle: map[string]string{
+				"test.rego": "package org",
+			},
+			Error: errors.New(`failed to parse policy file(s): failed to parse file: "test.rego": must declare rule "policy_name" but module contains no rules`),
+		},
+		{
+			Name: "fails if policy_name empty",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name = ""
+				`,
+			},
+			Error: errors.New(`failed to parse policy file(s): failed to parse file: "test.rego": policy_name must not be empty`),
+		},
+		{
+			Name: "fails if policy_name not the first rule",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					first_rule = "first"
+					policy_name = "policy"
+				`,
+			},
+			Error: errors.New(`first rule declaration must be "policy_name" but found "first_rule"`),
+		},
+		{
+			Name: "fails if policy_name is declared more than once",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name = "test"
+				`,
+				"test2.rego": `
+					package org
+					policy_name = "test"
+				`,
+			},
+			Error: errors.New(`failed to parse bundle: policy "test" declared 2 times`),
+		},
+		{
+			Name: "fails if policy_name is not a string",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name = 3.14159
+				`,
+			},
+			Error: errors.New(`failed to parse file: "test.rego": invalid policy_name: json: cannot unmarshal number into Go value of type string`),
+		},
+		{
+			Name: "fails if policy_name is invalid string",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name = "!@3"
+				`,
+			},
+			Error: errors.New(`failed to parse policy file(s): failed to parse file: "test.rego": "policy_name" must use alphanumeric and underscore characters only`),
+		},
+		{
+			Name: "fails if policy_name is too long",
+			DocumentBundle: func() map[string]string {
+				return map[string]string{
+					"test.rego": fmt.Sprintf(`
+						package org
+						policy_name = %q
+					`, strings.Repeat("a", 81)),
+				}
+			}(),
+			Error: errors.New(`failed to parse policy file(s): failed to parse file: "test.rego": policy_name must be maximum 80 characters but got 81`),
 		},
 	}
 
@@ -102,6 +206,8 @@ func TestDocumentQuery(t *testing.T) {
 		package test
 		import future.keywords
 
+		policy_name = "test"
+
 		names[name] {
 			name := input.team[_].name
 		}
@@ -129,9 +235,10 @@ func TestDocumentQuery(t *testing.T) {
 		t,
 		map[string]interface{}{
 			"test": map[string]interface{}{
-				"devs":    []interface{}{"Sagar"},
-				"names":   []interface{}{"Idoh", "Sagar"},
-				"product": []interface{}{"Idoh"},
+				"policy_name": "test",
+				"devs":        []interface{}{"Sagar"},
+				"names":       []interface{}{"Idoh", "Sagar"},
+				"product":     []interface{}{"Idoh"},
 			},
 		},
 		result,
@@ -164,24 +271,28 @@ func TestBundleQuery(t *testing.T) {
 	doc, err := parseBundle(map[string]string{
 		"helper.rego": `
 			package helper
+			policy_name := "helper"
 			names[name] {
 				name := input.team[_].name
 			}
 		`,
 		"product.rego": `
 			package team
+			policy_name := "prod"
 			product[name] {
 				some i; input.team[i].developer == false
 				name := input.team[i].name
 			}
 		`,
 		"devs.rego": `
-			package team
+			package devs
 			import future.keywords
 			import data.helper
+			import data.team
+			policy_name := "dev"
 			devs[name] {
 				some name in helper.names
-				not product[name]
+				not team.product[name]
 			}
 		`,
 	})
@@ -197,12 +308,17 @@ func TestBundleQuery(t *testing.T) {
 	require.EqualValues(
 		t,
 		map[string]interface{}{
+			"devs": map[string]interface{}{
+				"devs":        []interface{}{"Sagar"},
+				"policy_name": "dev",
+			},
 			"helper": map[string]interface{}{
-				"names": []interface{}{"Idoh", "Sagar"},
+				"names":       []interface{}{"Idoh", "Sagar"},
+				"policy_name": "helper",
 			},
 			"team": map[string]interface{}{
-				"devs":    []interface{}{"Sagar"},
-				"product": []interface{}{"Idoh"},
+				"policy_name": "prod",
+				"product":     []interface{}{"Idoh"},
 			},
 		},
 		result,
@@ -213,6 +329,8 @@ func TestMeta(t *testing.T) {
 	policy, err := ParseBundle(map[string]string{
 		"test.rego": `
 			package org
+
+			policy_name = "test"
 			
 			meta = data.meta
 		`,
@@ -229,4 +347,70 @@ func TestMeta(t *testing.T) {
 	require.NoError(t, err)
 
 	require.EqualValues(t, metadata, value)
+}
+
+func TestGetSource(t *testing.T) {
+	testcases := []struct {
+		Name   string
+		Bundle map[string]string
+		Source map[string]string
+	}{
+		{
+			Name:   "empty source",
+			Bundle: map[string]string{},
+			Source: map[string]string{},
+		},
+		{
+			Name: "gets source",
+			Bundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name = "name_test"
+					# some comment
+				`,
+			},
+			Source: map[string]string{
+				"name_test": "package org\n\npolicy_name = \"name_test\" { true }",
+			},
+		},
+		{
+			Name: "multiple source files",
+			Bundle: map[string]string{
+				"test1.rego": `
+					package org
+					policy_name = "test1"
+				`,
+				"test2.rego": `
+					package org
+					policy_name = "test2"
+				`,
+			},
+			Source: map[string]string{
+				"test1": "package org\n\npolicy_name = \"test1\" { true }",
+				"test2": "package org\n\npolicy_name = \"test2\" { true }",
+			},
+		},
+		{
+			Name: "bundle links helpers",
+			Bundle: map[string]string{
+				"test.rego": `
+					package org
+					import data.circleci.config
+					policy_name = "orbs"
+					versions = config.require_orbs_version([])
+				`,
+			},
+			Source: map[string]string{
+				"orbs": "package org\n\nimport data.circleci.config\n\npolicy_name = \"orbs\" { true }\nversions = config.require_orbs_version([]) { true }",
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.Name, func(t *testing.T) {
+			policy, err := ParseBundle(tc.Bundle)
+			require.NoError(t, err)
+			require.EqualValues(t, tc.Source, policy.Source())
+		})
+	}
 }
