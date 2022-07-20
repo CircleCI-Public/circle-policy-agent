@@ -9,15 +9,19 @@ import (
 
 var (
 	//go:embed rego/jobs.rego
-	JobsRego string
+	jobsRego string
 
 	//go:embed rego/orbs.rego
-	OrbsRego string
+	orbsRego string
+
+	//go:embed rego/runner.rego
+	runnerRego string
 )
 
 var configHelpers = map[string]string{
-	"circleci_jobs_helper.rego": JobsRego,
-	"circleci_orbs_helper.rego": OrbsRego,
+	"circleci_jobs_helper.rego":   jobsRego,
+	"circleci_orbs_helper.rego":   orbsRego,
+	"circleci_runner_helper.rego": runnerRego,
 }
 
 var configHelpersMap = make(map[string]*ast.Module, len(configHelpers))
