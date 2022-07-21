@@ -535,6 +535,26 @@ var runnerCases = []DecideTestCase{
 			},
 		},
 	},
+	{
+		Name: "does not affect unspecified resource classes",
+		Document: `
+			package org
+			import data.circleci.config
+			policy_name = "runner_test"
+
+			enable_rule["check_resource_class"]
+
+			check_resource_class = config.resource_class_by_project({"large": {"A"}})
+		`,
+		Config: `{
+			"jobs": { "lint": { "resource_class": "medium" } }
+		}`,
+		Metadata: map[string]interface{}{
+			"project_id": "B",
+		},
+		Error:    nil,
+		Decision: &Decision{Status: "PASS", EnabledRules: []string{"check_resource_class"}},
+	},
 }
 
 func TestDecide(t *testing.T) {
