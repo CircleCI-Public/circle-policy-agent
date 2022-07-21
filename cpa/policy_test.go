@@ -26,7 +26,7 @@ func TestParsePolicy(t *testing.T) {
 			DocumentBundle: map[string]string{
 				"test.rego": `
 					package org
-					policy_name = "test"
+					policy_name["test"]
 				`,
 			},
 			Error: nil,
@@ -36,15 +36,15 @@ func TestParsePolicy(t *testing.T) {
 			DocumentBundle: map[string]string{
 				"test.rego": `
 					package org
-					policy_name = "test_1"
+					policy_name["test_1"]
 				`,
 				"foo.rego": `
 					package org
-					policy_name = "test_2"
+					policy_name["test_2"]
 				`,
 				"bar.rego": `
 					package org
-					policy_name = "test_3"
+					policy_name["test_3"]
 				`,
 			},
 			Error: nil,
@@ -54,15 +54,15 @@ func TestParsePolicy(t *testing.T) {
 			DocumentBundle: map[string]string{
 				"bad.rego": `
 					package bad
-					policy_name = "test_1"
+					policy_name["test_1"]
 				`,
 				"foo.rego": `
 					package org
-					policy_name = "test_2"
+					policy_name["test_2"]
 				`,
 				"bar.rego": `
 					package org
-					policy_name = "test_3"
+					policy_name["test_3"]
 				`,
 			},
 			//nolint
@@ -75,7 +75,7 @@ func TestParsePolicy(t *testing.T) {
 					package org
 					import future.keywords
 					import data.circleci.config
-					policy_name = "test"
+					policy_name["test"]
 					my_orbs := config.orbs
 				`,
 			},
@@ -89,11 +89,21 @@ func TestParsePolicy(t *testing.T) {
 			Error: errors.New(`failed to parse policy file(s): failed to parse file: "test.rego": must declare rule "policy_name" but module contains no rules`),
 		},
 		{
+			Name: "fails if policy_name is not declared as  key",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name = "not_a_key"
+				`,
+			},
+			Error: errors.New("failed to parse policy file(s): failed to parse file: \"test.rego\": invalid policy_name declaration: must declare as key"),
+		},
+		{
 			Name: "fails if policy_name empty",
 			DocumentBundle: map[string]string{
 				"test.rego": `
 					package org
-					policy_name = ""
+					policy_name[""]
 				`,
 			},
 			Error: errors.New(`failed to parse policy file(s): failed to parse file: "test.rego": policy_name must not be empty`),
@@ -104,7 +114,7 @@ func TestParsePolicy(t *testing.T) {
 				"test.rego": `
 					package org
 					first_rule = "first"
-					policy_name = "policy"
+					policy_name["policy"]
 				`,
 			},
 			Error: errors.New(`first rule declaration must be "policy_name" but found "first_rule"`),
@@ -114,11 +124,11 @@ func TestParsePolicy(t *testing.T) {
 			DocumentBundle: map[string]string{
 				"test.rego": `
 					package org
-					policy_name = "test"
+					policy_name["test"]
 				`,
 				"test2.rego": `
 					package org
-					policy_name = "test"
+					policy_name["test"]
 				`,
 			},
 			Error: errors.New(`failed to parse bundle: policy "test" declared 2 times`),
@@ -128,7 +138,7 @@ func TestParsePolicy(t *testing.T) {
 			DocumentBundle: map[string]string{
 				"test.rego": `
 					package org
-					policy_name = 3.14159
+					policy_name[3.14159]
 				`,
 			},
 			Error: errors.New(`failed to parse file: "test.rego": invalid policy_name: json: cannot unmarshal number into Go value of type string`),
@@ -138,7 +148,7 @@ func TestParsePolicy(t *testing.T) {
 			DocumentBundle: map[string]string{
 				"test.rego": `
 					package org
-					policy_name = "!@3"
+					policy_name["!@3"]
 				`,
 			},
 			Error: errors.New(`failed to parse policy file(s): failed to parse file: "test.rego": "policy_name" must use alphanumeric and underscore characters only`),
@@ -149,7 +159,7 @@ func TestParsePolicy(t *testing.T) {
 				return map[string]string{
 					"test.rego": fmt.Sprintf(`
 						package org
-						policy_name = %q
+						policy_name[%q]
 					`, strings.Repeat("a", 81)),
 				}
 			}(),
@@ -206,7 +216,7 @@ func TestDocumentQuery(t *testing.T) {
 		package test
 		import future.keywords
 
-		policy_name = "test"
+		policy_name["test"]
 
 		names[name] {
 			name := input.team[_].name
@@ -235,7 +245,7 @@ func TestDocumentQuery(t *testing.T) {
 		t,
 		map[string]interface{}{
 			"test": map[string]interface{}{
-				"policy_name": "test",
+				"policy_name": []interface{}{"test"},
 				"devs":        []interface{}{"Sagar"},
 				"names":       []interface{}{"Idoh", "Sagar"},
 				"product":     []interface{}{"Idoh"},
@@ -271,14 +281,14 @@ func TestBundleQuery(t *testing.T) {
 	doc, err := parseBundle(map[string]string{
 		"helper.rego": `
 			package helper
-			policy_name := "helper"
+			policy_name["helper"]
 			names[name] {
 				name := input.team[_].name
 			}
 		`,
 		"product.rego": `
 			package team
-			policy_name := "prod"
+			policy_name["prod"]
 			product[name] {
 				some i; input.team[i].developer == false
 				name := input.team[i].name
@@ -289,7 +299,7 @@ func TestBundleQuery(t *testing.T) {
 			import future.keywords
 			import data.helper
 			import data.team
-			policy_name := "dev"
+			policy_name["dev"]
 			devs[name] {
 				some name in helper.names
 				not team.product[name]
@@ -310,14 +320,14 @@ func TestBundleQuery(t *testing.T) {
 		map[string]interface{}{
 			"devs": map[string]interface{}{
 				"devs":        []interface{}{"Sagar"},
-				"policy_name": "dev",
+				"policy_name": []interface{}{"dev"},
 			},
 			"helper": map[string]interface{}{
 				"names":       []interface{}{"Idoh", "Sagar"},
-				"policy_name": "helper",
+				"policy_name": []interface{}{"helper"},
 			},
 			"team": map[string]interface{}{
-				"policy_name": "prod",
+				"policy_name": []interface{}{"prod"},
 				"product":     []interface{}{"Idoh"},
 			},
 		},
@@ -330,7 +340,7 @@ func TestMeta(t *testing.T) {
 		"test.rego": `
 			package org
 
-			policy_name = "test"
+			policy_name["test"]
 			
 			meta = data.meta
 		`,
@@ -365,12 +375,12 @@ func TestGetSource(t *testing.T) {
 			Bundle: map[string]string{
 				"test.rego": `
 					package org
-					policy_name = "name_test"
+					policy_name["name_test"]
 					# some comment
 				`,
 			},
 			Source: map[string]string{
-				"name_test": "package org\n\npolicy_name = \"name_test\" { true }",
+				"name_test": "package org\n\npolicy_name[\"name_test\"] { true }",
 			},
 		},
 		{
@@ -378,16 +388,16 @@ func TestGetSource(t *testing.T) {
 			Bundle: map[string]string{
 				"test1.rego": `
 					package org
-					policy_name = "test1"
+					policy_name["test1"]
 				`,
 				"test2.rego": `
 					package org
-					policy_name = "test2"
+					policy_name["test2"]
 				`,
 			},
 			Source: map[string]string{
-				"test1": "package org\n\npolicy_name = \"test1\" { true }",
-				"test2": "package org\n\npolicy_name = \"test2\" { true }",
+				"test1": "package org\n\npolicy_name[\"test1\"] { true }",
+				"test2": "package org\n\npolicy_name[\"test2\"] { true }",
 			},
 		},
 		{
@@ -396,12 +406,12 @@ func TestGetSource(t *testing.T) {
 				"test.rego": `
 					package org
 					import data.circleci.config
-					policy_name = "orbs"
+					policy_name["orbs"]
 					versions = config.require_orbs_version([])
 				`,
 			},
 			Source: map[string]string{
-				"orbs": "package org\n\nimport data.circleci.config\n\npolicy_name = \"orbs\" { true }\nversions = config.require_orbs_version([]) { true }",
+				"orbs": "package org\n\nimport data.circleci.config\n\npolicy_name[\"orbs\"] { true }\nversions = config.require_orbs_version([]) { true }",
 			},
 		},
 	}

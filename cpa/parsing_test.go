@@ -25,7 +25,7 @@ func TestRegoParsing(t *testing.T) {
 			Document: `
 				package opa.example
 				import data.foo
-				policy_name := "test"
+				policy_name["test"]
 				p[x] { foo[x]; not ba[x]; x >= min_x }
 				min_x = 100 { true }
 			`,
@@ -37,7 +37,7 @@ func TestRegoParsing(t *testing.T) {
 				package opa.example
 				import data.foo
 				import input.bar
-				policy_name := "test"
+				policy_name["test"]
 				p[x] { foo[x]; not bar[x]; x >= min_x }
 				min_x = 100 { true }
 			`,
@@ -47,7 +47,7 @@ func TestRegoParsing(t *testing.T) {
 			Name: "fails package name linting",
 			Document: `
 				package evil
-				policy_name := "test"
+				policy_name["test"]
 			`,
 			LintRules: []LintRule{AllowedPackages("good", "righteous")},
 			//nolint
@@ -57,7 +57,7 @@ func TestRegoParsing(t *testing.T) {
 			Name: "passes package name linting",
 			Document: `
 				package good
-				policy_name := "test"
+				policy_name["test"]
 			`,
 			LintRules: []LintRule{AllowedPackages("good", "righteous")},
 			Error:     nil,

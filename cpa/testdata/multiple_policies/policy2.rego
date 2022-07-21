@@ -1,3 +1,3 @@
 package org
 
-policy_name := "policy_2"
+policy_name["policy_2"]

@@ -24,7 +24,7 @@ var lintingCases = []DecideTestCase{
 		Name: "error if package name is not org",
 		Document: `
 			package foo
-			policy_name = "test"
+			policy_name["test"]
 		`,
 		Error: errors.New("no org policy evaluations found"),
 	},
@@ -42,7 +42,7 @@ var outputStructureCases = []DecideTestCase{
 		Name: "hard failure when an enabled hard_fail rule is violated",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			enable_rule["name_is_bob"]
 			hard_fail["name_is_bob"]
 			name_is_bob = "name must be bob!" {	input.name != "bob" }
@@ -60,7 +60,7 @@ var outputStructureCases = []DecideTestCase{
 		Name: "soft failure when an enabled rule is violated",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			enable_rule["name_is_bob"]
 			name_is_bob = "name must be bob!" {	input.name != "bob" }
 		`,
@@ -77,7 +77,7 @@ var outputStructureCases = []DecideTestCase{
 		Name: "pass when no rule is violated",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			enable_rule["name_is_bob"]
 			name_is_bob = "name must be bob!" {	input.name != "bob" }
 		`,
@@ -91,7 +91,7 @@ var outputStructureCases = []DecideTestCase{
 		Name: "decision status is hard fail when there are violations for hard and soft fail rules",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			enable_rule := ["name_is_bob", "type_is_person"]
 			hard_fail := ["type_is_person"]
 			name_is_bob = "name must be bob!" {	input.name != "bob" }
@@ -116,7 +116,7 @@ var outputStructureCases = []DecideTestCase{
 		Name: "decision status is pass when no rule is enabled",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			hard_fail := ["type_is_person"]
 			name_is_bob = "name must be bob!" {	input.name != "bob" }
 			type_is_person = "type must be person" { input.type != "person" }
@@ -131,7 +131,7 @@ var outputStructureCases = []DecideTestCase{
 		Name: "violation reason can be parsed when reason is a map[string]interface{}",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			enable_rule["name_must_be_bob"]
 			name_must_be_bob[name] = reason {
 				name := input.names[_]
@@ -153,7 +153,7 @@ var outputStructureCases = []DecideTestCase{
 		Name: "violation reason can be parsed when reason is a static string",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			enable_rule["name_is_bob"]
 			name_is_bob = "name must be bob" { input.name != "bob" }
 		`,
@@ -170,7 +170,7 @@ var outputStructureCases = []DecideTestCase{
 		Name: "violation reason can be parsed when reason is []interface{}",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			enable_rule["name_starts_with_a_or_b"]
 			name_starts_with_a_or_b = reason {
 				not startswith(input.name, "a")
@@ -194,7 +194,7 @@ var orbCases = []DecideTestCase{
 		Name: "circleci require orb helper passes when orb is present",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["require_security_orbs"]
 			require_security_orbs = config.require_orbs(["circleci/security"])
@@ -213,7 +213,7 @@ var orbCases = []DecideTestCase{
 		Name: "circleci require orb helper fails when orb is absent",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["require_security_orbs"]
 			require_security_orbs = config.require_orbs(["circleci/security"])
@@ -235,7 +235,7 @@ var orbCases = []DecideTestCase{
 		Name: "circleci require orb version helper passes when orb is present",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["require_security_orbs"]
 			require_security_orbs = config.require_orbs_version(["circleci/security@1.2.3"])
@@ -254,7 +254,7 @@ var orbCases = []DecideTestCase{
 		Name: "circleci require orb version helper fails when orb has wrong version",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["require_security_orbs"]
 			require_security_orbs = config.require_orbs_version(["circleci/security@1.2.3"])
@@ -276,7 +276,7 @@ var orbCases = []DecideTestCase{
 		Name: "circleci ban orb helper passes when orb is absent",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["ban_orbs"]
 			ban_orbs = config.ban_orbs(["evilcorp/evil"])
@@ -295,7 +295,7 @@ var orbCases = []DecideTestCase{
 		Name: "circleci ban orb helper fails when orb is present",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["ban_orbs"]
 			ban_orbs = config.ban_orbs(["foo/bar", "evilcorp/evil"])
@@ -319,7 +319,7 @@ var orbCases = []DecideTestCase{
 		Name: "circleci ban orb version helper passes when orb is absent",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["ban_orbs"]
 			ban_orbs = config.ban_orbs_version(["evilcorp/evil@1.2.3", "security@0.0.0"])
@@ -338,7 +338,7 @@ var orbCases = []DecideTestCase{
 		Name: "circleci ban orb version helper fails when orb version is present",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["ban_orbs_version"]
 			ban_orbs_version = config.ban_orbs_version(["foo/bar@1.2.3", "evilcorp/evil@4.5.6"])
@@ -365,7 +365,7 @@ var jobCases = []DecideTestCase{
 		Name: "circleci require job helper passes when job is present",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["require_security_jobs"]
 			require_security_jobs = config.require_jobs(["security-job"])
@@ -388,7 +388,7 @@ var jobCases = []DecideTestCase{
 		Name: "circleci require job helper passes when jobs are present and jobs are in string and map format",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["require_security_jobs"]
 			require_security_jobs = config.require_jobs(["security-job","vulnerability-job"])
@@ -417,7 +417,7 @@ var jobCases = []DecideTestCase{
 		Name: "circleci require job helper soft fails when all required jobs are absent",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["require_security_jobs"]
 			require_security_jobs = config.require_jobs(["security-job","vulnerability-scan-job"])
@@ -444,7 +444,7 @@ var jobCases = []DecideTestCase{
 		Name: "circleci require job helper fails when one required job is present and one required job is absent",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["require_security_jobs"]
 			require_security_jobs = config.require_jobs(["security-job","vulnerability-scan-job"])
@@ -470,7 +470,7 @@ var jobCases = []DecideTestCase{
 		Name: "circleci require job helper properly handles multiple jobs in multiple workflows",
 		Document: `
 			package org
-			policy_name = "test"
+			policy_name["test"]
 			import data.circleci.config
 			enable_rule["require_security_jobs"]
 			require_security_jobs = config.require_jobs(["security-job","vulnerability-scan-job"])
@@ -506,7 +506,7 @@ var runnerCases = []DecideTestCase{
 		Document: `
 			package org
 			import data.circleci.config
-			policy_name = "runner_test"
+			policy_name["runner_test"]
 
 			enable_rule["check_resource_class"]
 
@@ -540,7 +540,7 @@ var runnerCases = []DecideTestCase{
 		Document: `
 			package org
 			import data.circleci.config
-			policy_name = "runner_test"
+			policy_name["runner_test"]
 
 			enable_rule["check_resource_class"]
 
