@@ -530,8 +530,8 @@ var runnerCases = []DecideTestCase{
 			Status:       "SOFT_FAIL",
 			EnabledRules: []string{"check_resource_class"},
 			SoftFailures: []Violation{
-				{Rule: "check_resource_class", Reason: "project \"B\" is not allowed to use resource_class \"large\" declared in job \"test\""},
-				{Rule: "check_resource_class", Reason: "project \"B\" is not allowed to use resource_class \"small\" declared in job \"build\""},
+				{Rule: "check_resource_class", Reason: "project is not allowed to use resource_class \"large\" declared in job \"test\""},
+				{Rule: "check_resource_class", Reason: "project is not allowed to use resource_class \"small\" declared in job \"build\""},
 			},
 		},
 	},
