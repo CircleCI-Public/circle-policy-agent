@@ -15,6 +15,7 @@ type DecideTestCase struct {
 	Document string
 	Config   string
 	Error    error
+	Metadata map[string]interface{}
 	Decision *Decision
 }
 
@@ -499,6 +500,63 @@ var jobCases = []DecideTestCase{
 	},
 }
 
+var runnerCases = []DecideTestCase{
+	{
+		Name: "detects resource_class violations",
+		Document: `
+			package org
+			import data.circleci.config
+			policy_name = "runner_test"
+
+			enable_rule["check_resource_class"]
+
+			check_resource_class = config.resource_class_by_project({
+				"large": {"A"},
+				"medium": {"B"},
+				"small": {"C"},
+			})
+		`,
+		Config: `{
+			"jobs": {
+				"lint": {"resource_class": "medium"},
+				"test": {"resource_class": "large"},
+				"build": {"resource_class": "small"}
+			}
+		}`,
+		Metadata: map[string]interface{}{
+			"project_id": "B",
+		},
+		Decision: &Decision{
+			Status:       "SOFT_FAIL",
+			EnabledRules: []string{"check_resource_class"},
+			SoftFailures: []Violation{
+				{Rule: "check_resource_class", Reason: "project is not allowed to use resource_class \"large\" declared in job \"test\""},
+				{Rule: "check_resource_class", Reason: "project is not allowed to use resource_class \"small\" declared in job \"build\""},
+			},
+		},
+	},
+	{
+		Name: "does not affect unspecified resource classes",
+		Document: `
+			package org
+			import data.circleci.config
+			policy_name = "runner_test"
+
+			enable_rule["check_resource_class"]
+
+			check_resource_class = config.resource_class_by_project({"large": {"A"}})
+		`,
+		Config: `{
+			"jobs": { "lint": { "resource_class": "medium" } }
+		}`,
+		Metadata: map[string]interface{}{
+			"project_id": "B",
+		},
+		Error:    nil,
+		Decision: &Decision{Status: "PASS", EnabledRules: []string{"check_resource_class"}},
+	},
+}
+
 func TestDecide(t *testing.T) {
 	testGroups := []struct {
 		Group string
@@ -519,6 +577,10 @@ func TestDecide(t *testing.T) {
 		{
 			Group: "job helper",
 			Cases: jobCases,
+		},
+		{
+			Group: "runner helper",
+			Cases: runnerCases,
 		},
 	}
 
@@ -541,7 +603,7 @@ func TestDecide(t *testing.T) {
 						t.Fatalf("failed to parse rego document for testing: %v", err)
 					}
 
-					decision, err := doc.Decide(context.Background(), config)
+					decision, err := doc.Decide(context.Background(), config, Meta(tc.Metadata))
 					if tc.Error == nil && err != nil {
 						t.Fatalf("expected no error but got: %v", err)
 					}
