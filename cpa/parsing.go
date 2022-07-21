@@ -75,7 +75,12 @@ func parsePolicyName(m *ast.Module) (string, error) {
 	}
 
 	var name string
-	if err := json.Unmarshal([]byte(m.Rules[0].Head.Value.String()), &name); err != nil {
+
+	key := m.Rules[0].Head.Key
+	if key == nil {
+		return "", fmt.Errorf("invalid %s declaration: must declare as key", policyName)
+	}
+	if err := json.Unmarshal([]byte(key.String()), &name); err != nil {
 		return "", fmt.Errorf("invalid %s: %v", policyName, err)
 	}
 
