@@ -70,17 +70,20 @@ func parsePolicyName(m *ast.Module) (string, error) {
 	if len(m.Rules) == 0 {
 		return "", fmt.Errorf("must declare rule %q but module contains no rules", policyName)
 	}
-	if name := m.Rules[0].Head.Name; name != policyName {
+
+	head := m.Rules[0].Head
+	if head == nil {
+		return "", fmt.Errorf("cannot parse rule head")
+	}
+	if name := head.Name.String(); name != policyName {
 		return "", fmt.Errorf("first rule declaration must be %q but found %q", policyName, name)
 	}
 
 	var name string
-
-	key := m.Rules[0].Head.Key
-	if key == nil {
+	if head.Key == nil {
 		return "", fmt.Errorf("invalid %s declaration: must declare as key", policyName)
 	}
-	if err := json.Unmarshal([]byte(key.String()), &name); err != nil {
+	if err := json.Unmarshal([]byte(head.Key.String()), &name); err != nil {
 		return "", fmt.Errorf("invalid %s: %v", policyName, err)
 	}
 
