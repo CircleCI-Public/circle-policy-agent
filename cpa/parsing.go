@@ -3,8 +3,6 @@ package cpa
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -179,9 +177,10 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 	return &Policy{compiler, source}, nil
 }
 
-//nolint:lll
 // ParseBundle will restrict package name to 'org'. This allows us to more easily extract information from the OPA output after evaluating a
 // policy, because we know what the keys will be in the map that contains the results (e.g., map["org"]["enable_rule"] to find enabled rules).
+//
+//nolint:lll
 func ParseBundle(files map[string]string) (*Policy, error) {
 	return parseBundle(files, AllowedPackages("org"))
 }
@@ -202,37 +201,4 @@ func (err MultiError) Error() string {
 	default:
 		return fmt.Sprintf("%d error(s) occurred: %s", len(err), strings.Join(messages, "; "))
 	}
-}
-
-// LoadPolicyFile takes policy file path as an input, and returns parsed policy
-func LoadPolicyFile(filePath string) (*Policy, error) {
-	documentBundle := make(map[string]string, 1)
-	fileContent, err := os.ReadFile(filepath.Clean(filePath))
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-	documentBundle[filepath.Base(filePath)] = string(fileContent)
-	return ParseBundle(documentBundle)
-}
-
-// LoadPolicyDirectory takes path of directory containing policies as an input, and returns parsed policy
-// every file in the top-level of the directory (non-recursive) will be considered as a policy file for parsing
-func LoadPolicyDirectory(directoryPath string) (*Policy, error) {
-	policyFiles, err := os.ReadDir(directoryPath) // get list of all files in given directory path
-	if err != nil {
-		return nil, fmt.Errorf("failed to get list of policy files: %w", err)
-	}
-	documentBundle := make(map[string]string, len(policyFiles))
-	for _, f := range policyFiles {
-		if f.IsDir() {
-			continue
-		}
-		filePath := filepath.Join(directoryPath, f.Name()) // get absolute file path
-		fileContent, err := os.ReadFile(filepath.Clean(filePath))
-		if err != nil {
-			return nil, fmt.Errorf("failed to read file: %w", err)
-		}
-		documentBundle[f.Name()] = string(fileContent)
-	}
-	return ParseBundle(documentBundle)
 }
