@@ -33,7 +33,7 @@ func LoadPolicyFromFS(root string) (*Policy, error) {
 
 	bundle := make(map[string]string)
 	for _, file := range files {
-		data, err := os.ReadFile(file)
+		data, err := os.ReadFile(filepath.Clean(file))
 		if err != nil {
 			return nil, fmt.Errorf("failed to read file: %w", err)
 		}

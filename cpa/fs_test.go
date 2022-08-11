@@ -30,6 +30,11 @@ func TestLoadPolicyFromFS(t *testing.T) {
 			Name: "successfully parses given filePath",
 			Path: "./testdata/multiple_policies/policy1.rego",
 		},
+		{
+			Name:        "fails when loading non-rego file",
+			Path:        "./testdata/mixed_ext/policy.text",
+			ExpectedErr: "no rego policies found at path",
+		},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.Name, func(t *testing.T) {
