@@ -31,7 +31,7 @@ func LoadPolicyFromFS(root string) (*Policy, error) {
 		return nil, fmt.Errorf("no rego policies found at path: %q", root)
 	}
 
-	bundle := make(map[string]string)
+	bundle := make(map[string]string, len(files))
 	for _, file := range files {
 		data, err := os.ReadFile(filepath.Clean(file))
 		if err != nil {
