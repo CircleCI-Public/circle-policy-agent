@@ -9,7 +9,7 @@ require (
 	github.com/open-policy-agent/opa v0.43.0
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
-	golang.org/x/text v0.3.7
+	golang.org/x/text v0.4.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/client-go v0.24.3
