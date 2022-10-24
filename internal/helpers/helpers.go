@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"embed"
-	_ "embed"
 	"path"
 
 	"github.com/open-policy-agent/opa/ast"

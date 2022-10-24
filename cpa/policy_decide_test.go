@@ -568,7 +568,7 @@ var contextCases = []DecideTestCase{
 
 			enable_rule["ban_private_context"]
 
-			ban_private_context = config.blocklist_by_project("public", "private")
+			ban_private_context = config.context_blocklist_by_project("public", "private")
 		`,
 		Config: `{
 			"workflows": {
@@ -604,7 +604,7 @@ var contextCases = []DecideTestCase{
 
 			enable_rule["ban_private_context"]
 
-			ban_private_context = config.blocklist_by_project("public", "private")
+			ban_private_context = config.context_blocklist_by_project("public", "private")
 		`,
 		Config: `{
 			"workflows": {
@@ -634,7 +634,7 @@ var contextCases = []DecideTestCase{
 
 			enable_rule["ban_private_context"]
 
-			ban_private_context = config.blocklist_by_project("public", {"private", "secret"})
+			ban_private_context = config.context_blocklist_by_project("public", {"private", "secret"})
 		`,
 		Config: `{
 			"workflows": {
@@ -656,6 +656,71 @@ var contextCases = []DecideTestCase{
 				{Rule: "ban_private_context", Reason: "context \"private\" used in job \"bad-job\" has been banned from current project"},
 				{Rule: "ban_private_context", Reason: "context \"secret\" used in job \"bad-job\" has been banned from current project"},
 			},
+		},
+	},
+	{
+		Name: "allowlist/should block contexts not in list",
+		Document: `
+			package org
+			import data.circleci.config
+
+			policy_name["test"]
+
+			enable_rule["context_check"]
+
+			context_check = config.context_allowlist_by_project("prjkt", {"one", "two"})
+		`,
+		Config: `{
+			"workflows": {
+				"main": {
+				  	"jobs": [
+						"good-job",
+						"bad-job": { "context": ["one", "three", "four"] }
+				  	]
+				}
+			}
+		}`,
+		Metadata: map[string]interface{}{
+			"project_id": "prjkt",
+		},
+		Decision: &Decision{
+			Status:       "SOFT_FAIL",
+			EnabledRules: []string{"context_check"},
+			SoftFailures: []Violation{
+				{Rule: "context_check", Reason: "context \"four\" used in job \"bad-job\" is not part of allowed list of contexts for project"},
+				{Rule: "context_check", Reason: "context \"three\" used in job \"bad-job\" is not part of allowed list of contexts for project"},
+			},
+		},
+	},
+
+	{
+		Name: "allowlist/should pass if all contexts are in allow list",
+		Document: `
+			package org
+			import data.circleci.config
+
+			policy_name["test"]
+
+			enable_rule["context_check"]
+
+			context_check = config.context_allowlist_by_project("prjkt", {"one", "two"})
+		`,
+		Config: `{
+			"workflows": {
+				"main": {
+				  	"jobs": [
+						"good-job",
+						"bad-job": { "context": "one" }
+				  	]
+				}
+			}
+		}`,
+		Metadata: map[string]interface{}{
+			"project_id": "prjkt",
+		},
+		Decision: &Decision{
+			Status:       "PASS",
+			EnabledRules: []string{"context_check"},
 		},
 	},
 }
