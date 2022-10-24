@@ -114,7 +114,6 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - deadcode
     - depguard
     - errcheck
     - funlen
@@ -130,12 +129,10 @@ linters:
     - misspell
     - nakedret
     - prealloc
-    - revive
+    # - revive
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
