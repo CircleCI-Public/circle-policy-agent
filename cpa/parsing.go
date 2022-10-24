@@ -98,10 +98,10 @@ func parsePolicyName(m *ast.Module) (string, error) {
 	return name, nil
 }
 
-func shouldImportConfigHelpers(mods map[string]*ast.Module) bool {
+func HasImport(mods map[string]*ast.Module, importPath string) bool {
 	for _, m := range mods {
 		for _, i := range m.Imports {
-			if i.Path.String() == "data.circleci.config" {
+			if i.Path.String() == importPath {
 				return true
 			}
 		}
@@ -161,10 +161,11 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 		return nil, fmt.Errorf("failed policy linting: %w", multiErr)
 	}
 
-	if shouldImportConfigHelpers(moduleMap) {
-		if err := helpers.AppendCircleCIConfigHelpers(moduleMap); err != nil {
-			return nil, fmt.Errorf("failed to import helper functions")
-		}
+	if HasImport(moduleMap, "data.circleci.utils") {
+		helpers.AppendHelpers(moduleMap, helpers.Utils)
+	}
+	if HasImport(moduleMap, "data.circleci.config") {
+		helpers.AppendHelpers(moduleMap, helpers.Config)
 	}
 
 	compiler := ast.NewCompiler()

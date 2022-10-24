@@ -557,6 +557,109 @@ var runnerCases = []DecideTestCase{
 	},
 }
 
+var contextCases = []DecideTestCase{
+	{
+		Name: "blocklist/should ban from project",
+		Document: `
+			package org
+			import data.circleci.config
+
+			policy_name["test"]
+
+			enable_rule["ban_private_context"]
+
+			ban_private_context = config.blocklist_by_project("public", "private")
+		`,
+		Config: `{
+			"workflows": {
+				"main": {
+				  	"jobs": [
+						"good-job",
+						"bad-job": { "context": "private" }
+				  	]
+				}
+			}
+		}`,
+		Metadata: map[string]interface{}{
+			"project_id": "public",
+		},
+		Decision: &Decision{
+			Status:       "SOFT_FAIL",
+			EnabledRules: []string{"ban_private_context"},
+			SoftFailures: []Violation{
+				{
+					Rule:   "ban_private_context",
+					Reason: "context \"private\" used in job \"bad-job\" has been banned from current project",
+				},
+			},
+		},
+	},
+	{
+		Name: "blocklist/should not ban from valid project",
+		Document: `
+			package org
+			import data.circleci.config
+
+			policy_name["test"]
+
+			enable_rule["ban_private_context"]
+
+			ban_private_context = config.blocklist_by_project("public", "private")
+		`,
+		Config: `{
+			"workflows": {
+				"main": {
+				  	"jobs": [
+						"good-job",
+						"bad-job": { "context": "private" }
+				  	]
+				}
+			}
+		}`,
+		Metadata: map[string]interface{}{
+			"project_id": "cool project",
+		},
+		Decision: &Decision{
+			Status:       "PASS",
+			EnabledRules: []string{"ban_private_context"},
+		},
+	},
+	{
+		Name: "blocklist/should ban multiple contexts",
+		Document: `
+			package org
+			import data.circleci.config
+
+			policy_name["test"]
+
+			enable_rule["ban_private_context"]
+
+			ban_private_context = config.blocklist_by_project("public", {"private", "secret"})
+		`,
+		Config: `{
+			"workflows": {
+				"main": {
+				  	"jobs": [
+						"good-job",
+						"bad-job": { "context": ["private", "secret"] }
+				  	]
+				}
+			}
+		}`,
+		Metadata: map[string]interface{}{
+			"project_id": "public",
+		},
+		Decision: &Decision{
+			Status:       "SOFT_FAIL",
+			EnabledRules: []string{"ban_private_context"},
+			SoftFailures: []Violation{
+				{Rule: "ban_private_context", Reason: "context \"private\" used in job \"bad-job\" has been banned from current project"},
+				{Rule: "ban_private_context", Reason: "context \"secret\" used in job \"bad-job\" has been banned from current project"},
+			},
+		},
+	},
+}
+
 func TestDecide(t *testing.T) {
 	testGroups := []struct {
 		Group string
@@ -581,6 +684,10 @@ func TestDecide(t *testing.T) {
 		{
 			Group: "runner helper",
 			Cases: runnerCases,
+		},
+		{
+			Group: "context cases",
+			Cases: contextCases,
 		},
 	}
 

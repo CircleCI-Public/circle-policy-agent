@@ -1,56 +1,64 @@
 package helpers
 
 import (
+	"embed"
 	_ "embed"
-	"fmt"
+	"path"
 
 	"github.com/open-policy-agent/opa/ast"
 )
 
-var (
-	//go:embed rego/jobs.rego
-	jobsRego string
+//go:embed rego
+var regoFS embed.FS
 
-	//go:embed rego/orbs.rego
-	orbsRego string
+var helpers = make(map[string]map[string]*ast.Module)
 
-	//go:embed rego/runner.rego
-	runnerRego string
+type Type string
 
-	//go:embed rego/contexts.rego
-	contextsRego string
-
-	//go:embed rego/utils.rego
-	utilsRego string
+const (
+	Config Type = "config"
+	Utils  Type = "utils"
 )
 
-var configHelpers = map[string]string{
-	"circleci_config_jobs_helper.rego":     jobsRego,
-	"circleci_config_orbs_helper.rego":     orbsRego,
-	"circleci_config_runner_helper.rego":   runnerRego,
-	"circleci_config_contexts_helper.rego": contextsRego,
-	"circleci_utils.rego":                  utilsRego,
+func init() {
+	entries, err := regoFS.ReadDir("rego")
+	if err != nil {
+		panic(err)
+	}
+	for _, entry := range entries {
+		helpers[entry.Name()] = loadRegoSubdir(path.Join("rego", entry.Name()))
+	}
 }
 
-var configHelpersMap = make(map[string]*ast.Module, len(configHelpers))
+func AppendHelpers(mods map[string]*ast.Module, helperType Type) {
+	for name, helper := range helpers[string(Utils)] {
+		mods[name] = helper
+	}
+	if helperType == Utils {
+		return
+	}
+	for filename, helper := range helpers[string(helperType)] {
+		mods[filename] = helper
+	}
+}
 
-func init() {
-	for filename, rego := range configHelpers {
-		mod, err := ast.ParseModule(filename, rego)
+func loadRegoSubdir(root string) map[string]*ast.Module {
+	entries, err := regoFS.ReadDir(root)
+	if err != nil {
+		panic(err)
+	}
+	result := make(map[string]*ast.Module)
+	for _, entry := range entries {
+		name := path.Join(root, entry.Name())
+		data, err := regoFS.ReadFile(name)
 		if err != nil {
 			panic(err)
 		}
-		configHelpersMap[filename] = mod
-	}
-}
-
-func AppendCircleCIConfigHelpers(mods map[string]*ast.Module) error {
-	for filename, helper := range configHelpersMap {
-		if _, ok := mods[filename]; ok {
-			return fmt.Errorf("policy filename %q uses reserved circleci_ prefix", filename)
+		mod, err := ast.ParseModule(name, string(data))
+		if err != nil {
+			panic(err)
 		}
-		mods[filename] = helper
+		result["circleci/"+name] = mod
 	}
-
-	return nil
+	return result
 }
