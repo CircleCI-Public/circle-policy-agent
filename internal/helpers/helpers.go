@@ -30,12 +30,6 @@ func init() {
 }
 
 func AppendHelpers(mods map[string]*ast.Module, helperType Type) {
-	for name, helper := range helpers[string(Utils)] {
-		mods[name] = helper
-	}
-	if helperType == Utils {
-		return
-	}
 	for filename, helper := range helpers[string(helperType)] {
 		mods[filename] = helper
 	}

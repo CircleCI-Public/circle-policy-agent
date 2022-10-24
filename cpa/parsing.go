@@ -161,11 +161,14 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 		return nil, fmt.Errorf("failed policy linting: %w", multiErr)
 	}
 
-	if HasImport(moduleMap, "data.circleci.utils") {
-		helpers.AppendHelpers(moduleMap, helpers.Utils)
-	}
 	if HasImport(moduleMap, "data.circleci.config") {
 		helpers.AppendHelpers(moduleMap, helpers.Config)
+	}
+
+	// Utils check should happen after other circleci modules since
+	// circleci modules may use utils themselves
+	if HasImport(moduleMap, "data.circleci.utils") {
+		helpers.AppendHelpers(moduleMap, helpers.Utils)
 	}
 
 	compiler := ast.NewCompiler()
