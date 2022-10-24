@@ -16,12 +16,20 @@ var (
 
 	//go:embed rego/runner.rego
 	runnerRego string
+
+	//go:embed rego/contexts.rego
+	contextsRego string
+
+	//go:embed rego/utils.rego
+	utilsRego string
 )
 
 var configHelpers = map[string]string{
-	"circleci_jobs_helper.rego":   jobsRego,
-	"circleci_orbs_helper.rego":   orbsRego,
-	"circleci_runner_helper.rego": runnerRego,
+	"circleci_config_jobs_helper.rego":     jobsRego,
+	"circleci_config_orbs_helper.rego":     orbsRego,
+	"circleci_config_runner_helper.rego":   runnerRego,
+	"circleci_config_contexts_helper.rego": contextsRego,
+	"circleci_utils.rego":                  utilsRego,
 }
 
 var configHelpersMap = make(map[string]*ast.Module, len(configHelpers))

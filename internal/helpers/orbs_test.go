@@ -10,7 +10,7 @@ import (
 )
 
 func TestOrbHelper(t *testing.T) {
-	mod := configHelpersMap["circleci_orbs_helper.rego"]
+	mod := configHelpersMap["circleci_config_orbs_helper.rego"]
 
 	input := map[string]interface{}{
 		"orbs": map[string]string{
