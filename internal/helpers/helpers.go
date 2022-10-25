@@ -12,25 +12,51 @@ var regoFS embed.FS
 
 var helpers = make(map[string]map[string]*ast.Module)
 
-type Type string
+type Type interface {
+	String() string
+	sealed()
+}
+
+type helperType string
+
+func (t helperType) String() string { return string(t) }
+func (t helperType) sealed()        {}
 
 const (
-	Config Type = "config"
-	Utils  Type = "utils"
+	Config helperType = "config"
+	Utils  helperType = "utils"
 )
+
+var types = []helperType{Config, Utils}
+
+func containsType(list []helperType, value string) bool {
+	for _, elem := range list {
+		if elem.String() == value {
+			return true
+		}
+	}
+	return false
+}
 
 func init() {
 	entries, err := regoFS.ReadDir("rego")
 	if err != nil {
 		panic(err)
 	}
+	if len(entries) != len(types) {
+		panic("mismatch between helper types and rego FS")
+	}
 	for _, entry := range entries {
-		helpers[entry.Name()] = loadRegoSubdir(path.Join("rego", entry.Name()))
+		name := entry.Name()
+		if !containsType(types, name) {
+			panic("invalid helper type in rego FS: " + name)
+		}
+		helpers[name] = loadRegoSubdir(path.Join("rego", name))
 	}
 }
 
 func AppendHelpers(mods map[string]*ast.Module, helperType Type) {
-	for filename, helper := range helpers[string(helperType)] {
+	for filename, helper := range helpers[helperType.String()] {
 		mods[filename] = helper
 	}
 }
