@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
+	"golang.org/x/exp/slices"
 
 	"github.com/CircleCI-Public/circle-policy-agent/internal/helpers"
 )
@@ -43,6 +44,21 @@ func convertYAMLMapKeyTypes(x interface{}, path []string) (interface{}, error) {
 }
 
 type LintRule func(*ast.Module) error
+
+var configPackageNameRules LintRule = func(m *ast.Module) error {
+	switch len(m.Package.Path) {
+	case 2:
+		if value := m.Package.Path[1].Value.String(); value != `"org"` {
+			return fmt.Errorf(`invalid package name %q must be one of org, branch["{expression}"] or project["{expression}"]`, m.Package.Path.String())
+		}
+	case 3:
+		if !slices.Contains([]string{`"project"`, `"branch"`}, m.Package.Path[1].Value.String()) {
+			return fmt.Errorf(`invalid package name %q must be one of org, branch["{expression}"] or project["{expression}"]`, m.Package.Path.String())
+		}
+	}
+
+	return nil
+}
 
 func AllowedPackages(names ...string) LintRule {
 	return func(m *ast.Module) error {
@@ -186,7 +202,7 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 //
 //nolint:lll
 func ParseBundle(files map[string]string) (*Policy, error) {
-	return parseBundle(files, AllowedPackages("org"))
+	return parseBundle(files, configPackageNameRules)
 }
 
 type MultiError []error
