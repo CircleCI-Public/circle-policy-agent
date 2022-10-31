@@ -1,6 +1,9 @@
 package cpa
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+)
 
 type Status string
 
@@ -35,4 +38,82 @@ func (d Decision) sort() {
 			return left.Rule+left.Reason < right.Rule+right.Reason
 		})
 	}
+}
+
+func (d *Decision) evaluate(contextName string, result map[string]any) error {
+	if result == nil {
+		return nil
+	}
+
+	enabled, err := asStringSlice(result["enable_rule"])
+	if err != nil {
+		return fmt.Errorf("invalid enable_rule: %w", err)
+	}
+
+	hardFailRules, err := asStringSlice(result["hard_fail"])
+	if err != nil {
+		return fmt.Errorf("invalid hard_fail: %w", err)
+	}
+
+	hardFailMap := make(map[string]struct{}, len(hardFailRules))
+	for _, rule := range hardFailRules {
+		hardFailMap[rule] = struct{}{}
+	}
+
+	for _, rule := range enabled {
+		d.EnabledRules = append(d.EnabledRules, contextName+"."+rule)
+		if _, ok := hardFailMap[rule]; ok {
+			d.HardFailures = append(d.HardFailures, extractViolations(result, rule, contextName)...)
+		} else {
+			d.SoftFailures = append(d.SoftFailures, extractViolations(result, rule, contextName)...)
+		}
+	}
+
+	return nil
+}
+
+func (d *Decision) finalize() {
+	if d == nil {
+		return
+	}
+
+	switch {
+	case len(d.HardFailures) > 0:
+		d.Status = StatusHardFail
+	case len(d.SoftFailures) > 0:
+		d.Status = StatusSoftFail
+	default:
+		d.Status = StatusPass
+	}
+
+	d.sort()
+}
+
+func extractViolations(data map[string]interface{}, rule, contextName string) []Violation {
+	var violations []Violation
+
+	qualifiedRule := contextName + "." + rule
+
+	switch reasonsType := data[rule].(type) {
+	case []interface{}:
+		reasons, err := asStringSlice(reasonsType)
+		if err != nil {
+			break // TODO: should we fail if rules return non string reasons? Should we only report string reasons?
+		}
+		for _, reason := range reasons {
+			violations = append(violations, Violation{Rule: qualifiedRule, Reason: reason})
+		}
+	case map[string]interface{}:
+		for _, value := range reasonsType {
+			reason, ok := value.(string)
+			if !ok {
+				continue // TODO what to do about non-string reasons?
+			}
+			violations = append(violations, Violation{Rule: qualifiedRule, Reason: reason})
+		}
+	case string:
+		violations = append(violations, Violation{Rule: qualifiedRule, Reason: reasonsType})
+	}
+
+	return violations
 }

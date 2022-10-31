@@ -11,12 +11,13 @@ import (
 )
 
 type DecideTestCase struct {
-	Name     string
-	Document string
-	Config   string
-	Error    error
-	Metadata map[string]interface{}
-	Decision *Decision
+	Name          string
+	Document      string
+	Config        string
+	ParseError    error
+	DecisionError error
+	Metadata      map[string]interface{}
+	Decision      *Decision
 }
 
 var lintingCases = []DecideTestCase{
@@ -26,17 +27,17 @@ var lintingCases = []DecideTestCase{
 			package foo
 			policy_name["test"]
 		`,
-		Error: errors.New("no org policy evaluations found"),
+		ParseError: errors.New(`invalid package name "data.foo" must be one of org, branch["{expression}"] or project["{expression}"]`),
 	},
 }
 
 var outputStructureCases = []DecideTestCase{
 	{
-		Name:     "trivial pass if no policy",
-		Document: "",
-		Config:   "input: any",
-		Error:    nil,
-		Decision: &Decision{Status: StatusPass},
+		Name:          "trivial pass if no policy",
+		Document:      "",
+		Config:        "input: any",
+		DecisionError: nil,
+		Decision:      &Decision{Status: StatusPass},
 	},
 	{
 		Name: "hard failure when an enabled hard_fail rule is violated",
@@ -50,9 +51,9 @@ var outputStructureCases = []DecideTestCase{
 		Config: `name: joe`,
 		Decision: &Decision{
 			Status:       "HARD_FAIL",
-			EnabledRules: []string{"name_is_bob"},
+			EnabledRules: []string{"org.name_is_bob"},
 			HardFailures: []Violation{
-				{Rule: "name_is_bob", Reason: "name must be bob!"},
+				{Rule: "org.name_is_bob", Reason: "name must be bob!"},
 			},
 		},
 	},
@@ -67,9 +68,9 @@ var outputStructureCases = []DecideTestCase{
 		Config: "name: joe",
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"name_is_bob"},
+			EnabledRules: []string{"org.name_is_bob"},
 			SoftFailures: []Violation{
-				{Rule: "name_is_bob", Reason: "name must be bob!"},
+				{Rule: "org.name_is_bob", Reason: "name must be bob!"},
 			},
 		},
 	},
@@ -84,7 +85,7 @@ var outputStructureCases = []DecideTestCase{
 		Config: `name: bob`,
 		Decision: &Decision{
 			Status:       StatusPass,
-			EnabledRules: []string{"name_is_bob"},
+			EnabledRules: []string{"org.name_is_bob"},
 		},
 	},
 	{
@@ -103,12 +104,12 @@ var outputStructureCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       "HARD_FAIL",
-			EnabledRules: []string{"name_is_bob", "type_is_person"},
+			EnabledRules: []string{"org.name_is_bob", "org.type_is_person"},
 			HardFailures: []Violation{
-				{Rule: "type_is_person", Reason: "type must be person"},
+				{Rule: "org.type_is_person", Reason: "type must be person"},
 			},
 			SoftFailures: []Violation{
-				{Rule: "name_is_bob", Reason: "name must be bob!"},
+				{Rule: "org.name_is_bob", Reason: "name must be bob!"},
 			},
 		},
 	},
@@ -142,10 +143,10 @@ var outputStructureCases = []DecideTestCase{
 		Config: `names: ["alice", "bob", "charlie"]`,
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"name_must_be_bob"},
+			EnabledRules: []string{"org.name_must_be_bob"},
 			SoftFailures: []Violation{
-				{Rule: "name_must_be_bob", Reason: "alice is not bob"},
-				{Rule: "name_must_be_bob", Reason: "charlie is not bob"},
+				{Rule: "org.name_must_be_bob", Reason: "alice is not bob"},
+				{Rule: "org.name_must_be_bob", Reason: "charlie is not bob"},
 			},
 		},
 	},
@@ -160,9 +161,9 @@ var outputStructureCases = []DecideTestCase{
 		Config: "name: joe",
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"name_is_bob"},
+			EnabledRules: []string{"org.name_is_bob"},
 			SoftFailures: []Violation{
-				{Rule: "name_is_bob", Reason: "name must be bob"},
+				{Rule: "org.name_is_bob", Reason: "name must be bob"},
 			},
 		},
 	},
@@ -180,10 +181,10 @@ var outputStructureCases = []DecideTestCase{
 		Config: `name: charlie`,
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"name_starts_with_a_or_b"},
+			EnabledRules: []string{"org.name_starts_with_a_or_b"},
 			SoftFailures: []Violation{
-				{Rule: "name_starts_with_a_or_b", Reason: "input does not start with a"},
-				{Rule: "name_starts_with_a_or_b", Reason: "input does not start with b"},
+				{Rule: "org.name_starts_with_a_or_b", Reason: "input does not start with a"},
+				{Rule: "org.name_starts_with_a_or_b", Reason: "input does not start with b"},
 			},
 		},
 	},
@@ -206,7 +207,7 @@ var orbCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       "PASS",
-			EnabledRules: []string{"require_security_orbs"},
+			EnabledRules: []string{"org.require_security_orbs"},
 		},
 	},
 	{
@@ -225,9 +226,9 @@ var orbCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"require_security_orbs"},
+			EnabledRules: []string{"org.require_security_orbs"},
 			SoftFailures: []Violation{
-				{Rule: "require_security_orbs", Reason: "circleci/security orb is required"},
+				{Rule: "org.require_security_orbs", Reason: "circleci/security orb is required"},
 			},
 		},
 	},
@@ -247,7 +248,7 @@ var orbCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       "PASS",
-			EnabledRules: []string{"require_security_orbs"},
+			EnabledRules: []string{"org.require_security_orbs"},
 		},
 	},
 	{
@@ -266,9 +267,9 @@ var orbCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"require_security_orbs"},
+			EnabledRules: []string{"org.require_security_orbs"},
 			SoftFailures: []Violation{
-				{Rule: "require_security_orbs", Reason: "circleci/security@1.2.3 orb is required"},
+				{Rule: "org.require_security_orbs", Reason: "circleci/security@1.2.3 orb is required"},
 			},
 		},
 	},
@@ -288,7 +289,7 @@ var orbCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       "PASS",
-			EnabledRules: []string{"ban_orbs"},
+			EnabledRules: []string{"org.ban_orbs"},
 		},
 	},
 	{
@@ -308,10 +309,10 @@ var orbCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"ban_orbs"},
+			EnabledRules: []string{"org.ban_orbs"},
 			SoftFailures: []Violation{
-				{Rule: "ban_orbs", Reason: "evilcorp/evil orb is not allowed in CircleCI configuration"},
-				{Rule: "ban_orbs", Reason: "foo/bar orb is not allowed in CircleCI configuration"},
+				{Rule: "org.ban_orbs", Reason: "evilcorp/evil orb is not allowed in CircleCI configuration"},
+				{Rule: "org.ban_orbs", Reason: "foo/bar orb is not allowed in CircleCI configuration"},
 			},
 		},
 	},
@@ -331,7 +332,7 @@ var orbCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       "PASS",
-			EnabledRules: []string{"ban_orbs"},
+			EnabledRules: []string{"org.ban_orbs"},
 		},
 	},
 	{
@@ -351,10 +352,10 @@ var orbCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"ban_orbs_version"},
+			EnabledRules: []string{"org.ban_orbs_version"},
 			SoftFailures: []Violation{
-				{Rule: "ban_orbs_version", Reason: "evilcorp/evil@4.5.6 orb is not allowed in CircleCI configuration"},
-				{Rule: "ban_orbs_version", Reason: "foo/bar@1.2.3 orb is not allowed in CircleCI configuration"},
+				{Rule: "org.ban_orbs_version", Reason: "evilcorp/evil@4.5.6 orb is not allowed in CircleCI configuration"},
+				{Rule: "org.ban_orbs_version", Reason: "foo/bar@1.2.3 orb is not allowed in CircleCI configuration"},
 			},
 		},
 	},
@@ -381,7 +382,7 @@ var jobCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       StatusPass,
-			EnabledRules: []string{"require_security_jobs"},
+			EnabledRules: []string{"org.require_security_jobs"},
 		},
 	},
 	{
@@ -410,7 +411,7 @@ var jobCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       StatusPass,
-			EnabledRules: []string{"require_security_jobs"},
+			EnabledRules: []string{"org.require_security_jobs"},
 		},
 	},
 	{
@@ -433,10 +434,10 @@ var jobCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       StatusSoftFail,
-			EnabledRules: []string{"require_security_jobs"},
+			EnabledRules: []string{"org.require_security_jobs"},
 			SoftFailures: []Violation{
-				{Rule: "require_security_jobs", Reason: "security-job job is required"},
-				{Rule: "require_security_jobs", Reason: "vulnerability-scan-job job is required"},
+				{Rule: "org.require_security_jobs", Reason: "security-job job is required"},
+				{Rule: "org.require_security_jobs", Reason: "vulnerability-scan-job job is required"},
 			},
 		},
 	},
@@ -460,9 +461,9 @@ var jobCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       StatusSoftFail,
-			EnabledRules: []string{"require_security_jobs"},
+			EnabledRules: []string{"org.require_security_jobs"},
 			SoftFailures: []Violation{
-				{Rule: "require_security_jobs", Reason: "vulnerability-scan-job job is required"},
+				{Rule: "org.require_security_jobs", Reason: "vulnerability-scan-job job is required"},
 			},
 		},
 	},
@@ -492,9 +493,9 @@ var jobCases = []DecideTestCase{
 		}`,
 		Decision: &Decision{
 			Status:       StatusSoftFail,
-			EnabledRules: []string{"require_security_jobs"},
+			EnabledRules: []string{"org.require_security_jobs"},
 			SoftFailures: []Violation{
-				{Rule: "require_security_jobs", Reason: "vulnerability-scan-job job is required"},
+				{Rule: "org.require_security_jobs", Reason: "vulnerability-scan-job job is required"},
 			},
 		},
 	},
@@ -528,10 +529,10 @@ var runnerCases = []DecideTestCase{
 		},
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"check_resource_class"},
+			EnabledRules: []string{"org.check_resource_class"},
 			SoftFailures: []Violation{
-				{Rule: "check_resource_class", Reason: "project is not allowed to use resource_class \"large\" declared in job \"test\""},
-				{Rule: "check_resource_class", Reason: "project is not allowed to use resource_class \"small\" declared in job \"build\""},
+				{Rule: "org.check_resource_class", Reason: "project is not allowed to use resource_class \"large\" declared in job \"test\""},
+				{Rule: "org.check_resource_class", Reason: "project is not allowed to use resource_class \"small\" declared in job \"build\""},
 			},
 		},
 	},
@@ -552,8 +553,8 @@ var runnerCases = []DecideTestCase{
 		Metadata: map[string]interface{}{
 			"project_id": "B",
 		},
-		Error:    nil,
-		Decision: &Decision{Status: "PASS", EnabledRules: []string{"check_resource_class"}},
+		DecisionError: nil,
+		Decision:      &Decision{Status: "PASS", EnabledRules: []string{"org.check_resource_class"}},
 	},
 }
 
@@ -585,10 +586,10 @@ var contextCases = []DecideTestCase{
 		},
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"ban_private_context"},
+			EnabledRules: []string{"org.ban_private_context"},
 			SoftFailures: []Violation{
 				{
-					Rule:   "ban_private_context",
+					Rule:   "org.ban_private_context",
 					Reason: "context \"private\" used in job \"bad-job\" has been banned from current project",
 				},
 			},
@@ -621,7 +622,7 @@ var contextCases = []DecideTestCase{
 		},
 		Decision: &Decision{
 			Status:       "PASS",
-			EnabledRules: []string{"ban_private_context"},
+			EnabledRules: []string{"org.ban_private_context"},
 		},
 	},
 	{
@@ -651,10 +652,10 @@ var contextCases = []DecideTestCase{
 		},
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"ban_private_context"},
+			EnabledRules: []string{"org.ban_private_context"},
 			SoftFailures: []Violation{
-				{Rule: "ban_private_context", Reason: "context \"private\" used in job \"bad-job\" has been banned from current project"},
-				{Rule: "ban_private_context", Reason: "context \"secret\" used in job \"bad-job\" has been banned from current project"},
+				{Rule: "org.ban_private_context", Reason: "context \"private\" used in job \"bad-job\" has been banned from current project"},
+				{Rule: "org.ban_private_context", Reason: "context \"secret\" used in job \"bad-job\" has been banned from current project"},
 			},
 		},
 	},
@@ -685,10 +686,10 @@ var contextCases = []DecideTestCase{
 		},
 		Decision: &Decision{
 			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"context_check"},
+			EnabledRules: []string{"org.context_check"},
 			SoftFailures: []Violation{
-				{Rule: "context_check", Reason: "context \"four\" used in job \"bad-job\" is not part of allowed list of contexts for project"},
-				{Rule: "context_check", Reason: "context \"three\" used in job \"bad-job\" is not part of allowed list of contexts for project"},
+				{Rule: "org.context_check", Reason: "context \"four\" used in job \"bad-job\" is not part of allowed list of contexts for project"},
+				{Rule: "org.context_check", Reason: "context \"three\" used in job \"bad-job\" is not part of allowed list of contexts for project"},
 			},
 		},
 	},
@@ -720,8 +721,95 @@ var contextCases = []DecideTestCase{
 		},
 		Decision: &Decision{
 			Status:       "PASS",
-			EnabledRules: []string{"context_check"},
+			EnabledRules: []string{"org.context_check"},
 		},
+	},
+}
+
+var metaPackageCases = []DecideTestCase{
+	{
+		Name: "project_id",
+		Document: `
+			package project.__id__
+			policy_name["prjkt_policies"]
+			enable_rule["custom"]
+			custom = "some error"
+		`,
+		Metadata: map[string]interface{}{"project_id": "__id__"},
+		Decision: &Decision{
+			Status:       "SOFT_FAIL",
+			EnabledRules: []string{"project.__id__.custom"},
+			SoftFailures: []Violation{
+				{Rule: "project.__id__.custom", Reason: "some error"},
+			},
+		},
+	},
+	{
+		Name: "project_id not matched",
+		Document: `
+			package project.__id__
+			policy_name["prjkt_policies"]
+			enable_rule["custom"]
+			custom = "some error"
+		`,
+		Metadata: map[string]interface{}{"project_id": "__other__"},
+		Decision: &Decision{Status: "PASS"},
+	},
+	{
+		Name: "project slug",
+		Document: `
+			package project["slug-*"]
+			policy_name["prjkt_policies"]
+			enable_rule["custom"]
+			custom = "some error"
+		`,
+		Metadata: map[string]interface{}{"project_slug": "slug-example"},
+		Decision: &Decision{
+			Status:       "SOFT_FAIL",
+			EnabledRules: []string{"project.slug-*.custom"},
+			SoftFailures: []Violation{
+				{Rule: "project.slug-*.custom", Reason: "some error"},
+			},
+		},
+	},
+	{
+		Name: "project slug not matched",
+		Document: `
+			package project["slug-*"]
+			policy_name["prjkt_policies"]
+			enable_rule["custom"]
+			custom = "some error"
+		`,
+		Metadata: map[string]interface{}{"project_slug": "not-slug-example"},
+		Decision: &Decision{Status: "PASS"},
+	},
+	{
+		Name: "branch",
+		Document: `
+			package branch["feature-*"]
+			policy_name["feature_policies"]
+			enable_rule["custom"]
+			custom = "some error"
+		`,
+		Metadata: map[string]interface{}{"branch": "feature-demo"},
+		Decision: &Decision{
+			Status:       "SOFT_FAIL",
+			EnabledRules: []string{"branch.feature-*.custom"},
+			SoftFailures: []Violation{
+				{Rule: "branch.feature-*.custom", Reason: "some error"},
+			},
+		},
+	},
+	{
+		Name: "branch not matched",
+		Document: `
+			package branch["feature-*"]
+			policy_name["prjkt_policies"]
+			enable_rule["custom"]
+			custom = "some error"
+		`,
+		Metadata: map[string]interface{}{"branch": "main"},
+		Decision: &Decision{Status: "PASS"},
 	},
 }
 
@@ -754,6 +842,10 @@ func TestDecide(t *testing.T) {
 			Group: "context cases",
 			Cases: contextCases,
 		},
+		{
+			Group: "meta cases",
+			Cases: metaPackageCases,
+		},
 	}
 
 	for _, group := range testGroups {
@@ -770,21 +862,24 @@ func TestDecide(t *testing.T) {
 						bundle["test.rego"] = tc.Document
 					}
 
-					doc, err := parseBundle(bundle)
-					if err != nil {
-						t.Fatalf("failed to parse rego document for testing: %v", err)
+					doc, err := ParseBundle(bundle)
+					if tc.ParseError == nil {
+						require.NoError(t, err)
+					} else {
+						require.ErrorContains(t, err, tc.ParseError.Error())
+						return
 					}
 
 					decision, err := doc.Decide(context.Background(), config, Meta(tc.Metadata))
-					if tc.Error == nil && err != nil {
+					if tc.DecisionError == nil && err != nil {
 						t.Fatalf("expected no error but got: %v", err)
 					}
 
-					if tc.Error != nil {
+					if tc.DecisionError != nil {
 						if err == nil {
-							t.Fatalf("expected error %q but got none", tc.Error.Error())
+							t.Fatalf("expected error %q but got none", tc.DecisionError.Error())
 						}
-						expected := tc.Error.Error()
+						expected := tc.DecisionError.Error()
 						actual := err.Error()
 						if !strings.Contains(actual, expected) {
 							t.Fatalf("expected error %q but got %q", expected, actual)

@@ -2,8 +2,11 @@ package cpa
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"path"
+	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -23,14 +26,17 @@ func (policy Policy) Source() map[string]string {
 // Eval will run native OPA query against your document, input, and apply any evaluation options.
 // It returns raw OPA expression values.
 func (policy Policy) Eval(ctx context.Context, query string, input interface{}, opts ...EvalOption) (interface{}, error) {
-	input, err := convertYAMLMapKeyTypes(input, nil)
-	if err != nil {
-		return nil, fmt.Errorf("invalid value: %w", err)
-	}
-
 	var options evalOptions
 	for _, apply := range opts {
 		apply(&options)
+	}
+	return policy.eval(ctx, query, input, options)
+}
+
+func (policy Policy) eval(ctx context.Context, query string, input interface{}, options evalOptions) (interface{}, error) {
+	input, err := convertYAMLMapKeyTypes(input, nil)
+	if err != nil {
+		return nil, fmt.Errorf("invalid value: %w", err)
 	}
 
 	regoOptions := []func(*rego.Rego){
@@ -73,7 +79,12 @@ func (policy Policy) Decide(ctx context.Context, input interface{}, opts ...Eval
 		return &Decision{Status: StatusPass}, nil
 	}
 
-	data, err := policy.Eval(ctx, "data", input, opts...)
+	var options evalOptions
+	for _, apply := range opts {
+		apply(&options)
+	}
+
+	data, err := policy.eval(ctx, "data", input, options)
 	if err != nil {
 		return nil, fmt.Errorf("failed to evaluate the query: %w", err)
 	}
@@ -83,75 +94,44 @@ func (policy Policy) Decide(ctx context.Context, input interface{}, opts ...Eval
 		return nil, errors.New("unexpected opa output")
 	}
 
-	org, ok := output["org"].(map[string]interface{})
-	if !ok {
-		return nil, errors.New("no org policy evaluations found")
+	var decision Decision
+
+	meta := fromJsonRepresentation(options.storage["meta"])
+
+	projectID := asString(meta["project_id"])
+	project := asMap(output["project"])
+
+	if err := decision.evaluate(dotJoin("project", projectID), asMap(project[projectID])); err != nil {
+		return nil, err
 	}
 
-	enabledRules, err := asStringSlice(org["enable_rule"])
-	if err != nil {
-		return nil, fmt.Errorf("invalid enable_rule: %w", err)
-	}
-
-	hardFailRules, err := asStringSlice(org["hard_fail"])
-	if err != nil {
-		return nil, fmt.Errorf("invalid hard_fail: %w", err)
-	}
-
-	hardFailMap := make(map[string]struct{})
-	for _, rule := range hardFailRules {
-		hardFailMap[rule] = struct{}{}
-	}
-
-	decision := Decision{EnabledRules: enabledRules}
-
-	for _, rule := range enabledRules {
-		if _, ok := hardFailMap[rule]; ok {
-			decision.HardFailures = append(decision.HardFailures, extractViolations(org, rule)...)
-		} else {
-			decision.SoftFailures = append(decision.SoftFailures, extractViolations(org, rule)...)
+	slug := asString(meta["project_slug"])
+	for key, value := range project {
+		if matched, _ := path.Match(key, slug); !matched {
+			continue
+		}
+		if err := decision.evaluate(dotJoin("project", key), asMap(value)); err != nil {
+			return nil, err
 		}
 	}
 
-	switch {
-	case len(decision.HardFailures) > 0:
-		decision.Status = StatusHardFail
-	case len(decision.SoftFailures) > 0:
-		decision.Status = StatusSoftFail
-	default:
-		decision.Status = StatusPass
+	branch := asString(meta["branch"])
+	for key, value := range asMap(output["branch"]) {
+		if matched, _ := path.Match(key, branch); !matched {
+			continue
+		}
+		if err := decision.evaluate(dotJoin("branch", key), asMap(value)); err != nil {
+			return nil, err
+		}
 	}
 
-	decision.sort()
+	if err := decision.evaluate("org", asMap(output["org"])); err != nil {
+		return nil, err
+	}
+
+	decision.finalize()
 
 	return &decision, nil
-}
-
-func extractViolations(data map[string]interface{}, rule string) []Violation {
-	var violations []Violation
-
-	switch reasonsType := data[rule].(type) {
-	case []interface{}:
-		reasons, err := asStringSlice(reasonsType)
-		if err != nil {
-			break // TODO: should we fail if rules return non string reasons? Should we only report string reasons?
-		}
-		for _, reason := range reasons {
-			violations = append(violations, Violation{Rule: rule, Reason: reason})
-		}
-	case map[string]interface{}:
-		for _, value := range reasonsType {
-			reason, ok := value.(string)
-			if !ok {
-				continue // TODO what to do about non-string reasons?
-			}
-			violations = append(violations, Violation{Rule: rule, Reason: reason})
-		}
-	case string:
-		violations = append(violations, Violation{Rule: rule, Reason: reasonsType})
-	}
-
-	return violations
 }
 
 func asStringSlice(value interface{}) ([]string, error) {
@@ -171,4 +151,33 @@ func asStringSlice(value interface{}) ([]string, error) {
 	}
 
 	return result, nil
+}
+
+func as[T any](value any) T {
+	result, _ := value.(T)
+	return result
+}
+
+var (
+	asMap    = as[map[string]any]
+	asString = as[string]
+)
+
+func dotJoin(values ...string) string {
+	return strings.Join(values, ".")
+}
+
+func fromJsonRepresentation(value any) (result map[string]any) {
+	result = map[string]any{}
+	if value == nil {
+		return
+	}
+
+	data, err := json.Marshal(value)
+	if err != nil {
+		return
+	}
+
+	_ = json.Unmarshal(data, &result)
+	return result
 }
