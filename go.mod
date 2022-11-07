@@ -3,7 +3,7 @@ module github.com/CircleCI-Public/circle-policy-agent
 go 1.18
 
 require (
-	github.com/aws/aws-sdk-go v1.44.128
+	github.com/aws/aws-sdk-go v1.44.131
 	github.com/containerd/containerd v1.6.9
 	github.com/emicklei/go-restful v2.16.0+incompatible
 	github.com/open-policy-agent/opa v0.45.0
