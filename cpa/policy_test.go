@@ -424,3 +424,18 @@ func TestGetSource(t *testing.T) {
 		})
 	}
 }
+
+func TestHttpBlocked(t *testing.T) {
+	policy, err := ParseBundle(map[string]string{
+		"policy.rego": `
+			package org
+			policy_name["http_test"]
+			test = http.send({
+				"url": "https://localhost:3000",
+				"method": "GET"
+			})
+		`,
+	})
+	require.ErrorContains(t, err, "undefined function http.send")
+	require.Nil(t, policy)
+}
