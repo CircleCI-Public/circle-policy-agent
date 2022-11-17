@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
+	"golang.org/x/exp/slices"
 
 	"github.com/CircleCI-Public/circle-policy-agent/internal/helpers"
 )
@@ -167,8 +168,21 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 		}
 	}
 
-	compiler := ast.NewCompiler()
-	compiler.WithStrict(true)
+	capabilities := ast.CapabilitiesForThisVersion()
+	capabilities.AllowNet = []string{}
+
+	disallowedBuiltins := []string{"http.send", "net.lookup_ip_addr"}
+	for _, builtin := range disallowedBuiltins {
+		i := slices.IndexFunc(capabilities.Builtins, func(elem *ast.Builtin) bool {
+			return elem.Name == builtin
+		})
+		capabilities.Builtins = slices.Delete(capabilities.Builtins, i, i+1)
+	}
+
+	compiler := ast.
+		NewCompiler().
+		WithCapabilities(capabilities).
+		WithStrict(true)
 
 	if compiler.Compile(moduleMap); compiler.Failed() {
 		return nil, fmt.Errorf("failed to compile policy: %w", compiler.Errors)

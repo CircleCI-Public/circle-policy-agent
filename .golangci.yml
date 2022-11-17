@@ -75,10 +75,10 @@ issues:
     - linters: [lll]
       source: https?://
     # very long lines are ok if they're in http response message fields
-    - linters: [ lll ]
+    - linters: [lll]
       source: '"message":'
     # very long lines are ok if they're in CLI config
-    - linters: [ lll ]
+    - linters: [lll]
       source: 'env:"'
     # very long lines are ok if they're documentation examples
     - linters: [lll]
@@ -117,9 +117,9 @@ linters:
     - deadcode
     - depguard
     - errcheck
-    - funlen
+    # - funlen
     - goconst
-    - gocyclo
+    # - gocyclo
     - gofmt
     - goimports
     - gosec
@@ -130,7 +130,7 @@ linters:
     - misspell
     - nakedret
     - prealloc
-    - revive
+    # - revive
     - staticcheck
     - structcheck
     - stylecheck
