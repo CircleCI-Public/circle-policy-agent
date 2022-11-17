@@ -171,11 +171,13 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 	capabilities := ast.CapabilitiesForThisVersion()
 	capabilities.AllowNet = []string{}
 
-	indexHTTPSend := slices.IndexFunc(capabilities.Builtins, func(elem *ast.Builtin) bool {
-		return elem.Name == "http.send"
-	})
-
-	capabilities.Builtins = slices.Delete(capabilities.Builtins, indexHTTPSend, indexHTTPSend+1)
+	disallowedBuiltins := []string{"http.send", "net.lookup_ip_addr"}
+	for _, builtin := range disallowedBuiltins {
+		i := slices.IndexFunc(capabilities.Builtins, func(elem *ast.Builtin) bool {
+			return elem.Name == builtin
+		})
+		capabilities.Builtins = slices.Delete(capabilities.Builtins, i, i+1)
+	}
 
 	compiler := ast.
 		NewCompiler().

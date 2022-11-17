@@ -439,3 +439,15 @@ func TestHttpBlocked(t *testing.T) {
 	require.ErrorContains(t, err, "undefined function http.send")
 	require.Nil(t, policy)
 }
+
+func TestNetLookupBlocked(t *testing.T) {
+	policy, err := ParseBundle(map[string]string{
+		"policy.rego": `
+			package org
+			policy_name["http_test"]
+			test = net.lookup_ip_addr("localhost")
+		`,
+	})
+	require.ErrorContains(t, err, "undefined function net.lookup_ip_addr")
+	require.Nil(t, policy)
+}
