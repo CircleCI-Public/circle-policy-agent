@@ -451,3 +451,24 @@ func TestNetLookupBlocked(t *testing.T) {
 	require.ErrorContains(t, err, "undefined function net.lookup_ip_addr")
 	require.Nil(t, policy)
 }
+
+func TestPolicyRuntimeError(t *testing.T) {
+	policy, err := ParseBundle(map[string]string{
+		"policy.rego": `
+			package org
+			policy_name["http_test"]
+			rule = "yes"
+			rule = "no"
+		`,
+	})
+	require.NoError(t, err)
+
+	decision, err := policy.Decide(context.Background(), nil)
+	require.NoError(t, err)
+	require.Equal(t, StatusError, decision.Status)
+	require.Equal(
+		t,
+		"policy.rego:5: eval_conflict_error: complete rules must not produce multiple outputs",
+		decision.Cause,
+	)
+}

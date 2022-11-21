@@ -75,7 +75,10 @@ func (policy Policy) Decide(ctx context.Context, input interface{}, opts ...Eval
 
 	data, err := policy.Eval(ctx, "data", input, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to evaluate the query: %w", err)
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return nil, err
+		}
+		return &Decision{Status: StatusError, Cause: err.Error()}, nil
 	}
 
 	output, ok := data.(map[string]interface{})

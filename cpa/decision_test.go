@@ -12,6 +12,7 @@ func TestJsonOutput(t *testing.T) {
 	t.Run("omitempty", func(t *testing.T) {
 		d := Decision{
 			Status:       "",
+			Cause:        "",
 			EnabledRules: nil,
 			HardFailures: nil,
 			SoftFailures: nil,
@@ -28,6 +29,7 @@ func TestJsonOutput(t *testing.T) {
 	t.Run("key names", func(t *testing.T) {
 		d := Decision{
 			Status:       "",
+			Cause:        "cause",
 			EnabledRules: []string{""},
 			HardFailures: []Violation{{}},
 			SoftFailures: []Violation{{}},
@@ -51,7 +53,7 @@ func TestJsonOutput(t *testing.T) {
 
 		require.EqualValues(
 			t,
-			[]string{"enabled_rules", "hard_failures", "soft_failures", "status"},
+			[]string{"cause", "enabled_rules", "hard_failures", "soft_failures", "status"},
 			keys,
 		)
 	})
