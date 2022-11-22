@@ -19,7 +19,7 @@ type Violation struct {
 // Decision is a circleci flavoured output representing a policy decision.
 type Decision struct {
 	Status       Status      `json:"status"`
-	Cause        string      `json:"cause,omitempty"`
+	Reason       string      `json:"reason,omitempty"`
 	EnabledRules []string    `json:"enabled_rules,omitempty"`
 	HardFailures []Violation `json:"hard_failures,omitempty"`
 	SoftFailures []Violation `json:"soft_failures,omitempty"`

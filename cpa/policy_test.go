@@ -469,6 +469,6 @@ func TestPolicyRuntimeError(t *testing.T) {
 	require.Equal(
 		t,
 		"policy.rego:5: eval_conflict_error: complete rules must not produce multiple outputs",
-		decision.Cause,
+		decision.Reason,
 	)
 }

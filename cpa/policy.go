@@ -78,7 +78,7 @@ func (policy Policy) Decide(ctx context.Context, input interface{}, opts ...Eval
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			return nil, err
 		}
-		return &Decision{Status: StatusError, Cause: err.Error()}, nil
+		return &Decision{Status: StatusError, Reason: err.Error()}, nil
 	}
 
 	output, ok := data.(map[string]interface{})
