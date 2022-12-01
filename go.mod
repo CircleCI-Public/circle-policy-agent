@@ -8,7 +8,7 @@ require (
 	github.com/emicklei/go-restful v2.16.0+incompatible
 	github.com/open-policy-agent/opa v0.46.1
 	github.com/stretchr/testify v1.8.1
-	golang.org/x/crypto v0.1.0
+	golang.org/x/crypto v0.3.0
 	golang.org/x/exp v0.0.0-20221114191408-850992195362
 	golang.org/x/text v0.4.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -67,9 +67,9 @@ require (
 	github.com/yashtewari/glob-intersection v0.1.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
-	golang.org/x/net v0.1.0 // indirect
+	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
 	google.golang.org/grpc v1.50.1 // indirect
