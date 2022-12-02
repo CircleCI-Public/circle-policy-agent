@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  snyk-vuln-scanner: cci-internal/snyk-vuln-scanner@0.3.0
+
 executors:
   go:
     docker:
@@ -56,6 +59,10 @@ workflows:
     jobs:
       - lint
       - test
+      - snyk-vuln-scanner/vuln-scan:
+          context: [org-global, org-global-employees]
+          snyk-organization-name: "CircleCI-Public"
+          current-branch: << pipeline.git.branch >>
       - publish:
           requires:
             - lint
