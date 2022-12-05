@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.149
 	github.com/containerd/containerd v1.6.10
 	github.com/emicklei/go-restful v2.16.0+incompatible
-	github.com/open-policy-agent/opa v0.46.1
+	github.com/open-policy-agent/opa v0.47.0
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.3.0
 	golang.org/x/exp v0.0.0-20221114191408-850992195362
@@ -72,6 +72,6 @@ require (
 	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
-	google.golang.org/grpc v1.50.1 // indirect
+	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )
