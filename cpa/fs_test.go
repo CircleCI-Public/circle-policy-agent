@@ -37,7 +37,7 @@ func TestLoadPolicyFromFS(t *testing.T) {
 		{
 			Name:        "fails when loading non-rego file",
 			Path:        "./testdata/mixed_ext/policy.text",
-			ExpectedErr: "no rego policies found at path",
+			ExpectedErr: "no rego policies found",
 		},
 		{
 			Name:             "only load rego files",
