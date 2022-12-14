@@ -1,11 +1,14 @@
 package cpa
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 )
+
+var ErrNoPolicies = errors.New("no rego policies found")
 
 // LoadPolicyFromFS takes a filesystem path to load policy files from. It returns a parsed policy.
 // If the path is a file that policy is loaded as a bundle of 1 file. If the path is a directory that
@@ -28,7 +31,7 @@ func LoadPolicyFromFS(root string) (*Policy, error) {
 	}
 
 	if len(files) == 0 {
-		return nil, fmt.Errorf("no rego policies found at path: %q", root)
+		return nil, ErrNoPolicies
 	}
 
 	bundle := make(map[string]string, len(files))
