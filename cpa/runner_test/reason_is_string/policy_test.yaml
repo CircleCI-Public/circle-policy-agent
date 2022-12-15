@@ -1,0 +1,11 @@
+test_reason_is_string:
+  input:
+    name: "joe"
+
+  decision:
+    status: SOFT_FAIL
+    enabled_rules:
+      - name_is_bob
+    soft_failures:
+      - rule: name_is_bob
+        reason: name must be bob

@@ -1,0 +1,16 @@
+test_reason_is_map:
+  input:
+    names:
+    - "alice"
+    - "bob"
+    - "charlie"
+
+  decision:
+    status: SOFT_FAIL
+    enabled_rules:
+      - name_must_be_bob
+    soft_failures:
+      - rule: name_must_be_bob
+        reason: alice is not bob
+      - rule: name_must_be_bob
+        reason: charlie is not bob

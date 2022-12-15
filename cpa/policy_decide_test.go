@@ -30,91 +30,6 @@ var lintingCases = []DecideTestCase{
 	},
 }
 
-var outputStructureCases = []DecideTestCase{
-	{
-		Name:     "trivial pass if no policy",
-		Document: "",
-		Config:   "input: any",
-		Error:    nil,
-		Decision: &Decision{Status: StatusPass},
-	},
-	{
-		Name: "decision status is pass when no rule is enabled",
-		Document: `
-			package org
-			policy_name["test"]
-			hard_fail := ["type_is_person"]
-			name_is_bob = "name must be bob!" {	input.name != "bob" }
-			type_is_person = "type must be person" { input.type != "person" }
-		`,
-		Config: `{
-			"name": "sasha",
-			"type": "scooter"
-		}`,
-		Decision: &Decision{Status: "PASS"},
-	},
-	{
-		Name: "violation reason can be parsed when reason is a map[string]interface{}",
-		Document: `
-			package org
-			policy_name["test"]
-			enable_rule["name_must_be_bob"]
-			name_must_be_bob[name] = reason {
-				name := input.names[_]
-				name != "bob"
-				reason := sprintf("%s is not bob", [name])
-			}
-		`,
-		Config: `names: ["alice", "bob", "charlie"]`,
-		Decision: &Decision{
-			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"name_must_be_bob"},
-			SoftFailures: []Violation{
-				{Rule: "name_must_be_bob", Reason: "alice is not bob"},
-				{Rule: "name_must_be_bob", Reason: "charlie is not bob"},
-			},
-		},
-	},
-	{
-		Name: "violation reason can be parsed when reason is a static string",
-		Document: `
-			package org
-			policy_name["test"]
-			enable_rule["name_is_bob"]
-			name_is_bob = "name must be bob" { input.name != "bob" }
-		`,
-		Config: "name: joe",
-		Decision: &Decision{
-			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"name_is_bob"},
-			SoftFailures: []Violation{
-				{Rule: "name_is_bob", Reason: "name must be bob"},
-			},
-		},
-	},
-	{
-		Name: "violation reason can be parsed when reason is []interface{}",
-		Document: `
-			package org
-			policy_name["test"]
-			enable_rule["name_starts_with_a_or_b"]
-			name_starts_with_a_or_b = reason {
-				not startswith(input.name, "a")
-				reason := ["input does not start with a", "input does not start with b"]
-			}
-		`,
-		Config: `name: charlie`,
-		Decision: &Decision{
-			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"name_starts_with_a_or_b"},
-			SoftFailures: []Violation{
-				{Rule: "name_starts_with_a_or_b", Reason: "input does not start with a"},
-				{Rule: "name_starts_with_a_or_b", Reason: "input does not start with b"},
-			},
-		},
-	},
-}
-
 var orbCases = []DecideTestCase{
 	{
 		Name: "circleci require orb helper passes when orb is present",
@@ -491,10 +406,6 @@ func TestDecide(t *testing.T) {
 		{
 			Group: "linting",
 			Cases: lintingCases,
-		},
-		{
-			Group: "output structure",
-			Cases: outputStructureCases,
 		},
 		{
 			Group: "orb helper",

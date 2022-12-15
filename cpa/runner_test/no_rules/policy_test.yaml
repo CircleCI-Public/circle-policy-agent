@@ -1,0 +1,5 @@
+test_no_rules:
+  input:
+    name: bob
+  decision:
+    status: PASS

@@ -1,0 +1,3 @@
+test_no_policy:
+  decision:
+    status: PASS

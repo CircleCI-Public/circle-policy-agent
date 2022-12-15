@@ -1,4 +1,4 @@
-test_base_policy:
+test_soft_and_hard_fail_together:
   input:
     name: sasha
     type: scooter
