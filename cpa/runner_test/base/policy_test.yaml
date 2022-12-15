@@ -1,0 +1,30 @@
+test_base_policy:
+  input:
+    name: bob
+  decision:
+    status: PASS
+    enabled_rules:
+      - name_is_bob
+
+  cases:
+    not_bob:
+      input:
+        name: john
+      decision:
+        status: SOFT_FAIL
+        enabled_rules:
+          - name_is_bob
+        soft_failures:
+          - rule: name_is_bob
+            reason: name must be bob!
+      cases:
+        hard_fail:
+          meta:
+            hard: true
+          decision:
+            status: HARD_FAIL
+            enabled_rules:
+              - name_is_bob
+            hard_failures:
+              - rule: name_is_bob
+                reason: name must be bob!

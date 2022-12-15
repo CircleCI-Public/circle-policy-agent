@@ -39,55 +39,6 @@ var outputStructureCases = []DecideTestCase{
 		Decision: &Decision{Status: StatusPass},
 	},
 	{
-		Name: "hard failure when an enabled hard_fail rule is violated",
-		Document: `
-			package org
-			policy_name["test"]
-			enable_rule["name_is_bob"]
-			hard_fail["name_is_bob"]
-			name_is_bob = "name must be bob!" {	input.name != "bob" }
-		`,
-		Config: `name: joe`,
-		Decision: &Decision{
-			Status:       "HARD_FAIL",
-			EnabledRules: []string{"name_is_bob"},
-			HardFailures: []Violation{
-				{Rule: "name_is_bob", Reason: "name must be bob!"},
-			},
-		},
-	},
-	{
-		Name: "soft failure when an enabled rule is violated",
-		Document: `
-			package org
-			policy_name["test"]
-			enable_rule["name_is_bob"]
-			name_is_bob = "name must be bob!" {	input.name != "bob" }
-		`,
-		Config: "name: joe",
-		Decision: &Decision{
-			Status:       "SOFT_FAIL",
-			EnabledRules: []string{"name_is_bob"},
-			SoftFailures: []Violation{
-				{Rule: "name_is_bob", Reason: "name must be bob!"},
-			},
-		},
-	},
-	{
-		Name: "pass when no rule is violated",
-		Document: `
-			package org
-			policy_name["test"]
-			enable_rule["name_is_bob"]
-			name_is_bob = "name must be bob!" {	input.name != "bob" }
-		`,
-		Config: `name: bob`,
-		Decision: &Decision{
-			Status:       StatusPass,
-			EnabledRules: []string{"name_is_bob"},
-		},
-	},
-	{
 		Name: "decision status is hard fail when there are violations for hard and soft fail rules",
 		Document: `
 			package org

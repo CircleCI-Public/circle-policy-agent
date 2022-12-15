@@ -46,8 +46,19 @@ type TestRunOptions struct {
 }
 
 func (t NamedTest) Run(policy *cpa.Policy, opts TestRunOptions) []Result {
-	input := internal.Merge(opts.Parent.Input, t.Input)
-	meta := internal.Merge(opts.Parent.Meta, t.Meta)
+	input := func() any {
+		if t.Input == nil {
+			return opts.Parent.Input
+		}
+		return internal.Merge(opts.Parent.Input, t.Input)
+	}()
+
+	meta := func() any {
+		if t.Meta == nil {
+			return opts.Parent.Meta
+		}
+		return internal.Merge(opts.Parent.Meta, t.Meta)
+	}()
 
 	name := t.Name
 	if opts.Parent.Name != "" {
