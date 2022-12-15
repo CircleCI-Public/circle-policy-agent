@@ -148,7 +148,7 @@ func (runner *Runner) runFolder(folder string) {
 
 	if err != nil {
 		if errors.Is(err, cpa.ErrNoPolicies) {
-			runner.writer.Row("ok", folder, "no policies")
+			runner.writer.Row("?", folder, "no policies")
 			return
 		}
 		runner.hasErrored = true
@@ -157,7 +157,7 @@ func (runner *Runner) runFolder(folder string) {
 	}
 
 	if len(results) == 0 {
-		runner.writer.Row("ok", folder, "no tests")
+		runner.writer.Row("?", folder, "no tests")
 		return
 	}
 
