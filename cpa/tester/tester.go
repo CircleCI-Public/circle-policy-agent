@@ -3,7 +3,9 @@ package cpa/tester simply re-exports the necessary public interface from the int
 */
 package tester
 
-import "github.com/CircleCI-Public/circle-policy-agent/internal/tester"
+import (
+	"github.com/CircleCI-Public/circle-policy-agent/internal/tester"
+)
 
 type (
 	RunnerOptions = tester.RunnerOptions

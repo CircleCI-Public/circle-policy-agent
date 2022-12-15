@@ -104,7 +104,7 @@ func (runner *Runner) runOpaTests() {
 			status = "fail"
 			runner.failed++
 		}
-		runner.PrintResult(Result{
+		runner.printResult(Result{
 			Name:    name,
 			Ok:      r.Pass(),
 			Elapsed: r.Duration,
@@ -138,7 +138,7 @@ func (runner *Runner) runFolder(folder string) {
 			runner.failed++
 			status = "FAIL"
 		}
-		runner.PrintResult(result)
+		runner.printResult(result)
 	}
 
 	// flush after test block

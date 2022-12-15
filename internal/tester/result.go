@@ -18,7 +18,7 @@ type Result struct {
 	Ctx any
 }
 
-func (runner Runner) PrintResult(result Result) {
+func (runner Runner) printResult(result Result) {
 	if result.Ok && !runner.opts.Debug && !runner.opts.Verbose {
 		return
 	}
