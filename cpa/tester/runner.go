@@ -206,8 +206,8 @@ func (runner Runner) execFolderTests(folder string) ([]Result, error) {
 
 	var results []Result
 	for _, t := range namedTests {
-		results = append(results, t.Run(policy, testRunOptions{
-			Parent:  parentCtx{},
+		results = append(results, t.Run(policy, TestRunOptions{
+			Parent:  ParentTestContext{},
 			Include: runner.opts.Include,
 		})...)
 	}

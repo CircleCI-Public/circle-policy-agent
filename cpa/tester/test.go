@@ -13,11 +13,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type Results []Result
-
-func (results Results) Print() {
-}
-
 type Test struct {
 	Input    any
 	Meta     any
@@ -39,18 +34,18 @@ type NamedTest struct {
 	*Test
 }
 
-type parentCtx struct {
+type ParentTestContext struct {
 	Name  string
 	Input any
 	Meta  any
 }
 
-type testRunOptions struct {
-	Parent  parentCtx
+type TestRunOptions struct {
+	Parent  ParentTestContext
 	Include *regexp.Regexp
 }
 
-func (t NamedTest) Run(policy *cpa.Policy, opts testRunOptions) []Result {
+func (t NamedTest) Run(policy *cpa.Policy, opts TestRunOptions) []Result {
 	input := internal.Merge(opts.Parent.Input, t.Input)
 	meta := internal.Merge(opts.Parent.Meta, t.Meta)
 
@@ -101,8 +96,8 @@ func (t NamedTest) Run(policy *cpa.Policy, opts testRunOptions) []Result {
 	}
 
 	for _, subtest := range t.NamedCases() {
-		results = append(results, subtest.Run(policy, testRunOptions{
-			Parent: parentCtx{
+		results = append(results, subtest.Run(policy, TestRunOptions{
+			Parent: ParentTestContext{
 				Name:  name,
 				Input: input,
 				Meta:  meta,
