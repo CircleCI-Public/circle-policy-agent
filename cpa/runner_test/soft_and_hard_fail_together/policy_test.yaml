@@ -1,0 +1,15 @@
+test_base_policy:
+  input:
+    name: sasha
+    type: scooter
+  decision:
+    status: HARD_FAIL
+    enabled_rules:
+      - name_is_bob
+      - type_is_person
+    soft_failures:
+      - rule: name_is_bob
+        reason: name must be bob!
+    hard_failures:
+      - rule: type_is_person
+        reason: type must be person
