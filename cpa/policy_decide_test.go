@@ -39,31 +39,6 @@ var outputStructureCases = []DecideTestCase{
 		Decision: &Decision{Status: StatusPass},
 	},
 	{
-		Name: "decision status is hard fail when there are violations for hard and soft fail rules",
-		Document: `
-			package org
-			policy_name["test"]
-			enable_rule := ["name_is_bob", "type_is_person"]
-			hard_fail := ["type_is_person"]
-			name_is_bob = "name must be bob!" {	input.name != "bob" }
-			type_is_person = "type must be person" { input.type != "person" }
-		`,
-		Config: `{
-			"name": "sasha",
-			"type": "scooter"
-		}`,
-		Decision: &Decision{
-			Status:       "HARD_FAIL",
-			EnabledRules: []string{"name_is_bob", "type_is_person"},
-			HardFailures: []Violation{
-				{Rule: "type_is_person", Reason: "type must be person"},
-			},
-			SoftFailures: []Violation{
-				{Rule: "name_is_bob", Reason: "name must be bob!"},
-			},
-		},
-	},
-	{
 		Name: "decision status is pass when no rule is enabled",
 		Document: `
 			package org
