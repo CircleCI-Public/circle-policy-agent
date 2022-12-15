@@ -1,15 +1,12 @@
 package org
 
-policy_name["test"]
+import future.keywords
 
-enable_rule := ["name_is_bob", "type_is_person"]
+policy_name["soft_and_hard_fails"]
 
-hard_fail := ["type_is_person"]
+enable_rule contains rule if {some rule in ["soft_failure_rule", "hard_failure_rule"]}
 
-name_is_bob = "name must be bob!" {
-	input.name != "bob"
-}
+hard_fail contains "hard_failure_rule"
 
-type_is_person = "type must be person" {
-	input.type != "person"
-}
+soft_failure_rule = "soft failure!"
+hard_failure_rule = "hard failure!"

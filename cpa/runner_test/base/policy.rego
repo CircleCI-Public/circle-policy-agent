@@ -1,6 +1,6 @@
 package org
 
-policy_name["test"]
+policy_name["base"]
 
 enable_rule["name_is_bob"]
 

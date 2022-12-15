@@ -1,15 +1,12 @@
 test_soft_and_hard_fail_together:
-  input:
-    name: sasha
-    type: scooter
   decision:
     status: HARD_FAIL
     enabled_rules:
-      - name_is_bob
-      - type_is_person
+      - hard_failure_rule
+      - soft_failure_rule
     soft_failures:
-      - rule: name_is_bob
-        reason: name must be bob!
+      - rule: soft_failure_rule
+        reason: soft failure!
     hard_failures:
-      - rule: type_is_person
-        reason: type must be person
+      - rule: hard_failure_rule
+        reason: hard failure!

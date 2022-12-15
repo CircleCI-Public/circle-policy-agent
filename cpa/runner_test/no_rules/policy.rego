@@ -1,9 +1,7 @@
 package org
 
-policy_name["test"]
+policy_name["no_rules"]
 
-hard_fail["name_is_bob"]
+hard_fail["some_hard_rule"]
 
-name_is_bob = "name must be bob!" {
-	input.name != "bob"
-}
+some_hard_rule = "rule always fails! but it is not enabled so. Meh..."

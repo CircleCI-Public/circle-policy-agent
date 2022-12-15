@@ -13,7 +13,7 @@ func TestRunner(t *testing.T) {
 		Path:    "./...",
 		Dst:     os.Stdout,
 		Verbose: true,
-		Debug:   false,
+		Debug:   os.Getenv("DEBUG") == "true",
 		Include: nil,
 	}
 

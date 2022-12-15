@@ -1,5 +1,5 @@
 test_no_rules:
   input:
-    name: bob
+    name: not bob for sure!
   decision:
     status: PASS
