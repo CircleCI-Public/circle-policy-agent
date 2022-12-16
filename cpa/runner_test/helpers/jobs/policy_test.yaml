@@ -1,0 +1,39 @@
+test_require_jobs:
+  input:
+    workflows:
+      main:
+        jobs:
+          - job_one
+          - job_two
+  decision:
+    status: PASS
+    enabled_rules:
+      - require_jobs
+
+  cases:
+    jobs_as_objects:
+      input:
+        workflows:
+          main:
+            jobs:
+              - job_one: {}
+              - job_two: {}
+      decision:
+        status: PASS
+        enabled_rules:
+          - require_jobs
+
+    missing_jobs:
+      input:
+        workflows:
+          main:
+            jobs: [other, other_two]
+      decision:
+        status: SOFT_FAIL
+        enabled_rules:
+          - require_jobs
+        soft_failures:
+          - rule: require_jobs
+            reason: job_one job is required
+          - rule: require_jobs
+            reason: job_two job is required

@@ -1,18 +1,18 @@
 package circleci.config
 
-import future.keywords.in
+import future.keywords
 
-jobs := {job | walk(input, [path, value])
-	path[_] == "workflows"
-	job = get_job_name(value[_].jobs[_])
+jobs := { job_name | 
+	some job in input.workflows[_].jobs
+	job_name = get_job_name(job)
 }
 
 # after the CircleCI config is converted from YAML to JSON, the job can either be a string or a map
 get_job_name(job) = job_name {
-	# if a value is returned here (i.e., this evaluates to true), the job is a map and the key is the job's name
-	_ = job[key]
-	job_name = key
-} else = job
+	is_object(job)
+	count(job) == 1
+	some job_name, _ in job	
+} else = job { is_string(job) }
 
 require_jobs(job_names) = { job_name: msg | job_name := job_names[_]
         not job_name in jobs
