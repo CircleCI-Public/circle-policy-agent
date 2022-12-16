@@ -1,4 +1,4 @@
-test_orb_helper:
+test_require_orbs:
   input:
     orbs:
       security: circleci/security@1.2.3
@@ -18,7 +18,7 @@ test_orb_helper:
           - rule: require_security_orbs
             reason: circleci/security orb is required
 
-test_orb_helper_version:
+test_require_orbs_version:
   input:
     orbs:
       security: circleci/security@1.2.3

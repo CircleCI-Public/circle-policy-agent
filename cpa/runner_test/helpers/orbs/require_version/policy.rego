@@ -3,7 +3,7 @@ package org
 import data.circleci.config
 import future.keywords
 
-policy_name["orb_helper"]
+policy_name["require_orbs"]
 
 enable_rule["require_security_orbs"] {
 	not data.meta.require_version
