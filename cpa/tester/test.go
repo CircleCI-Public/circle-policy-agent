@@ -68,7 +68,7 @@ func (t NamedTest) Run(policy *cpa.Policy, opts TestRunOptions) []Result {
 	var results []Result
 
 	if opts.Include == nil || opts.Include.MatchString(name) {
-		eval, _ := policy.Eval(context.Background(), "data", input)
+		eval, _ := policy.Eval(context.Background(), "data", input, cpa.Meta(meta))
 
 		start := time.Now()
 		var decision any = internal.Must(policy.Decide(context.Background(), input, cpa.Meta(meta)))
