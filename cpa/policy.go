@@ -20,6 +20,12 @@ func (policy Policy) Source() map[string]string {
 	return policy.source
 }
 
+// Modules returns the built module map used in the opa compiler. It includes any circleci rego source
+// imported in the source code.
+func (policy Policy) Modules() map[string]*ast.Module {
+	return policy.compiler.Modules
+}
+
 // Eval will run native OPA query against your document, input, and apply any evaluation options.
 // It returns raw OPA expression values.
 func (policy Policy) Eval(ctx context.Context, query string, input interface{}, opts ...EvalOption) (interface{}, error) {

@@ -1,0 +1,53 @@
+test_orb_helper:
+  input:
+    orbs:
+      security: circleci/security@1.2.3
+  decision:
+    status: PASS
+    enabled_rules:
+      - require_security_orbs
+  cases:
+    orb_absent:
+      input:
+        orbs: null
+      decision:
+        status: SOFT_FAIL
+        enabled_rules:
+          - require_security_orbs
+        soft_failures:
+          - rule: require_security_orbs
+            reason: circleci/security orb is required
+
+test_orb_helper_version:
+  input:
+    orbs:
+      security: circleci/security@1.2.3
+  meta:
+    require_version: true
+  decision:
+    status: PASS
+    enabled_rules:
+      - require_security_orbs_version
+  cases:
+    wrong_version:
+      input:
+        orbs:
+          security: circleci/security@0.0.0
+      decision:
+        status: SOFT_FAIL
+        enabled_rules:
+          - require_security_orbs_version
+        soft_failures:
+          - rule: require_security_orbs_version
+            reason: circleci/security@1.2.3 orb is required
+    absent:
+      input:
+        orbs: null
+      decision:
+        status: SOFT_FAIL
+        enabled_rules: 
+          - require_security_orbs_version
+        soft_failures:
+          - reason: circleci/security@1.2.3 orb is required
+            rule: require_security_orbs_version
+        

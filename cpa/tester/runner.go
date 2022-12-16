@@ -14,7 +14,6 @@ import (
 
 	"github.com/CircleCI-Public/circle-policy-agent/cpa"
 	"github.com/CircleCI-Public/circle-policy-agent/internal"
-	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/tester"
 	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v2"
@@ -84,16 +83,11 @@ func (runner *Runner) runOpaTests() {
 		return
 	}
 
-	modules := make(map[string]*ast.Module, len(policy.Source()))
-	for key, value := range policy.Source() {
-		modules[key] = ast.MustParseModule(value)
-	}
-
 	start := time.Now()
 	status := "ok"
 
 	var count int
-	for r := range internal.Must(tester.NewRunner().Run(context.Background(), modules)) {
+	for r := range internal.Must(tester.NewRunner().Run(context.Background(), policy.Modules())) {
 		name := "<opa.tests>/" + r.Package + "." + r.Name
 		if runner.opts.Include != nil && !runner.opts.Include.MatchString(name) {
 			continue
@@ -113,7 +107,7 @@ func (runner *Runner) runOpaTests() {
 	}
 
 	if count == 0 {
-		runner.writer.Row(status, "<opa.tests>", "no tests")
+		runner.writer.Row("?", "<opa.tests>", "no tests")
 		return
 	}
 

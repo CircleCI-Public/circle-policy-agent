@@ -14,7 +14,7 @@ func TestRunner(t *testing.T) {
 		Dst:     os.Stdout,
 		Verbose: true,
 		Debug:   os.Getenv("DEBUG") == "true",
-		Include: nil,
+		// Include: regexp.MustCompile("test_orb_helper"),
 	}
 
 	runner, err := tester.NewRunner(options)
