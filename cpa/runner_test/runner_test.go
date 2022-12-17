@@ -2,7 +2,6 @@ package runner_test
 
 import (
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/CircleCI-Public/circle-policy-agent/cpa/tester"
@@ -15,7 +14,7 @@ func TestRunner(t *testing.T) {
 		Dst:     os.Stdout,
 		Verbose: true,
 		Debug:   os.Getenv("DEBUG") == "true",
-		Include: regexp.MustCompile("project_small"),
+		// Include: regexp.MustCompile("project_small"),
 	}
 
 	runner, err := tester.NewRunner(options)
