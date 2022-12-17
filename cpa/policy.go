@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/CircleCI-Public/circle-policy-agent/internal"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage/inmem"
@@ -29,7 +30,7 @@ func (policy Policy) Modules() map[string]*ast.Module {
 // Eval will run native OPA query against your document, input, and apply any evaluation options.
 // It returns raw OPA expression values.
 func (policy Policy) Eval(ctx context.Context, query string, input interface{}, opts ...EvalOption) (interface{}, error) {
-	input, err := convertYAMLMapKeyTypes(input, nil)
+	input, err := internal.ConvertYAMLMapKeyTypes(input)
 	if err != nil {
 		return nil, fmt.Errorf("invalid value: %w", err)
 	}

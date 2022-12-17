@@ -12,37 +12,6 @@ import (
 	"github.com/CircleCI-Public/circle-policy-agent/internal/helpers"
 )
 
-// This function has been stolen from the OPA codebase, ast/parser.go:2210 for
-// converting yaml decoded types to types that OPA can handle
-func convertYAMLMapKeyTypes(x interface{}, path []string) (interface{}, error) {
-	var err error
-	switch x := x.(type) {
-	case map[interface{}]interface{}:
-		result := make(map[string]interface{}, len(x))
-		for k, v := range x {
-			str, ok := k.(string)
-			if !ok {
-				return nil, fmt.Errorf("invalid map key type(s): %v", strings.Join(path, "/"))
-			}
-			result[str], err = convertYAMLMapKeyTypes(v, append(path, str))
-			if err != nil {
-				return nil, err
-			}
-		}
-		return result, nil
-	case []interface{}:
-		for i := range x {
-			x[i], err = convertYAMLMapKeyTypes(x[i], append(path, fmt.Sprintf("%d", i)))
-			if err != nil {
-				return nil, err
-			}
-		}
-		return x, nil
-	default:
-		return x, nil
-	}
-}
-
 type LintRule func(*ast.Module) error
 
 func AllowedPackages(names ...string) LintRule {
