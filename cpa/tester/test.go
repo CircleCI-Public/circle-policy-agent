@@ -1,16 +1,14 @@
 package tester
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"regexp"
-	"time"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
 
-	"github.com/CircleCI-Public/circle-policy-agent/cpa"
 	"github.com/CircleCI-Public/circle-policy-agent/internal"
-	"github.com/yazgazan/jaydiff/diff"
 	"golang.org/x/exp/slices"
+	"gopkg.in/yaml.v2"
 )
 
 type Test struct {
@@ -40,82 +38,53 @@ type ParentTestContext struct {
 	Meta  any
 }
 
-type TestRunOptions struct {
-	Parent  ParentTestContext
-	Include *regexp.Regexp
+func loadTests(path string) (tests map[string]*Test, err error) {
+	//nolint gosec
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	err = yaml.Unmarshal(data, &tests)
+	if err != nil {
+		return
+	}
+	for _, t := range tests {
+		sanitizeTest(t)
+	}
+	return
 }
 
-func (t NamedTest) Run(policy *cpa.Policy, opts TestRunOptions) []Result {
-	input := func() any {
-		if t.Input == nil {
-			return opts.Parent.Input
-		}
-		return internal.Merge(opts.Parent.Input, t.Input)
-	}()
-
-	meta := func() any {
-		if t.Meta == nil {
-			return opts.Parent.Meta
-		}
-		return internal.Merge(opts.Parent.Meta, t.Meta)
-	}()
-
-	name := t.Name
-	if opts.Parent.Name != "" {
-		name = opts.Parent.Name + "/" + name
+func getTestFolders(path string) (folders []string, err error) {
+	if path != "./..." {
+		path = strings.TrimPrefix(path, "./")
 	}
-
-	var results []Result
-
-	if opts.Include == nil || opts.Include.MatchString(name) {
-		eval, _ := policy.Eval(context.Background(), "data", input, cpa.Meta(meta))
-
-		start := time.Now()
-		var decision any = internal.Must(policy.Decide(context.Background(), input, cpa.Meta(meta)))
-		elapsed := time.Since(start)
-
-		decision = internal.Must(internal.ToRawInterface(decision))
-
-		d := internal.Must(diff.Diff(decision, t.Decision))
-
-		if d.Diff() != diff.Identical {
-			fmt.Printf("")
+	if !strings.HasSuffix(path, "/...") {
+		return []string{path}, nil
+	}
+	err = filepath.WalkDir(path[:len(path)-4], func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
+		if !d.IsDir() {
+			return nil
+		}
+		if name := d.Name(); len(name) > 1 && name[0] == '.' {
+			return filepath.SkipDir
+		}
+		folders = append(folders, path)
+		return nil
+	})
+	return
+}
 
-		results = append(results, Result{
-			Name: name,
-			Ok:   d.Diff() == diff.Identical,
-			Err: func() error {
-				if d.Diff() == diff.Identical {
-					return nil
-				}
-				return errors.New(d.StringIndent("", "  ", diff.Output{
-					Indent:     "  ",
-					Colorized:  true,
-					JSON:       true,
-					JSONValues: true,
-				}))
-			}(),
-			Elapsed: elapsed,
-			Ctx: map[string]any{
-				"input":      input,
-				"meta":       meta,
-				"decision":   decision,
-				"evaluation": eval,
-			},
-		})
+func sanitizeTest(t *Test) {
+	if t == nil {
+		return
 	}
-
-	for _, subtest := range t.NamedCases() {
-		results = append(results, subtest.Run(policy, TestRunOptions{
-			Parent: ParentTestContext{
-				Name:  name,
-				Input: input,
-				Meta:  meta,
-			},
-			Include: opts.Include,
-		})...)
+	t.Decision = internal.Must(internal.ConvertYAMLMapKeyTypes(t.Decision))
+	t.Input = internal.Must(internal.ConvertYAMLMapKeyTypes(t.Input))
+	t.Meta = internal.Must(internal.ConvertYAMLMapKeyTypes(t.Meta))
+	for _, t := range t.Cases {
+		sanitizeTest(t)
 	}
-
-	return results
 }

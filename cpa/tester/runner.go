@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -15,34 +13,25 @@ import (
 	"github.com/CircleCI-Public/circle-policy-agent/cpa"
 	"github.com/CircleCI-Public/circle-policy-agent/internal"
 	"github.com/open-policy-agent/opa/tester"
+	"github.com/yazgazan/jaydiff/diff"
 	"golang.org/x/exp/slices"
-	"gopkg.in/yaml.v2"
 )
 
 type Runner struct {
-	writer internal.TableWriter
-	opts   RunnerOptions
-
-	total      int
-	failed     int
-	folders    []string
-	hasErrored bool
+	opts    RunnerOptions
+	folders []string
 }
 
 type RunnerOptions struct {
 	Path    string
-	Dst     io.Writer
-	Verbose bool
-	Debug   bool
 	Include *regexp.Regexp
 }
+
+var ErrNoTests = errors.New("no tests")
 
 func NewRunner(opts RunnerOptions) (*Runner, error) {
 	if opts.Path == "" {
 		opts.Path = "./..."
-	}
-	if opts.Dst == nil {
-		opts.Dst = os.Stderr
 	}
 
 	folder, err := getTestFolders(opts.Path)
@@ -50,118 +39,63 @@ func NewRunner(opts RunnerOptions) (*Runner, error) {
 		return nil, fmt.Errorf("failed to lookup test folders: %w", err)
 	}
 
-	return &Runner{
-		writer:  internal.MakeTableWriter(opts.Dst),
-		folders: folder,
-		opts:    opts,
-	}, nil
+	return &Runner{folders: folder, opts: opts}, nil
 }
 
-func (runner *Runner) Run() bool {
-	start := time.Now()
+func (runner *Runner) Run() <-chan Result {
+	results := make(chan Result)
 
-	runner.runOpaTests()
-	for _, folder := range runner.folders {
-		runner.runFolder(folder)
-	}
+	go func() {
+		defer close(results)
+		runner.runOpaTests(results)
+		for _, folder := range runner.folders {
+			runner.runFolder(folder, results)
+		}
+	}()
 
-	runner.writer.Textf("\n%d/%d tests passed (%.3fs)\n", runner.total-runner.failed, runner.total, time.Since(start).Seconds())
-
-	return !runner.hasErrored && runner.failed == 0
+	return results
 }
 
-func (runner *Runner) runOpaTests() {
+func (runner *Runner) RunAndHandleResults(handler ResultHandler) bool {
+	return handler.HandleResults(runner.Run())
+}
+
+func (runner *Runner) runOpaTests(results chan<- Result) {
 	root := runner.folders[0]
 
 	policy, err := cpa.LoadPolicyFromFS(root)
 	if err != nil {
-		if errors.Is(err, cpa.ErrNoPolicies) {
-			return
+		results <- Result{
+			Group: "<opa.tests>",
+			Err:   err,
 		}
-		runner.hasErrored = true
-		runner.writer.Row("FAIL", "<opa.tests>", err)
 		return
 	}
 
-	start := time.Now()
-	status := "ok"
-
-	var count int
 	for r := range internal.Must(tester.NewRunner().Run(context.Background(), policy.Modules())) {
-		name := "<opa.tests>/" + r.Package + "." + r.Name
+		name := r.Package + "." + r.Name
 		if runner.opts.Include != nil && !runner.opts.Include.MatchString(name) {
 			continue
 		}
-		count++
-		runner.total++
-		if !r.Pass() {
-			status = "fail"
-			runner.failed++
-		}
-		runner.printResult(Result{
+		results <- Result{
+			Group:   "<opa.tests>",
 			Name:    name,
 			Ok:      r.Pass(),
 			Elapsed: r.Duration,
 			Err:     r.Error,
-		})
+		}
 	}
-
-	if count == 0 {
-		runner.writer.Row("?", "<opa.tests>", "no tests")
-		return
-	}
-
-	runner.writer.Row(status, "<opa.tests>", fmt.Sprintf("%.3fs", time.Since(start).Seconds()))
 }
 
-func (runner *Runner) runFolder(folder string) {
-	start := time.Now()
-	results, err := runner.execFolderTests(folder)
-	elapsed := time.Since(start)
-
-	runner.total += len(results)
-
-	// Flush before test block
-	if len(results) > 0 && (runner.opts.Verbose || runner.opts.Debug) {
-		runner.writer.Flush()
-	}
-
-	status := "ok"
-	for _, result := range results {
-		if !result.Ok {
-			runner.failed++
-			status = "FAIL"
-		}
-		runner.printResult(result)
-	}
-
-	// flush after test block
-	if len(results) > 0 && (runner.opts.Verbose || runner.opts.Debug) {
-		runner.writer.Flush()
-	}
-
-	if err != nil {
-		if errors.Is(err, cpa.ErrNoPolicies) {
-			runner.writer.Row("?", folder, "no policies")
-			return
-		}
-		runner.hasErrored = true
-		runner.writer.Row("fail", folder, err)
-		return
-	}
-
-	if len(results) == 0 {
-		runner.writer.Row("?", folder, "no tests")
-		return
-	}
-
-	runner.writer.Row(status, folder, fmt.Sprintf("%.3fs", elapsed.Seconds()))
-}
-
-func (runner Runner) execFolderTests(folder string) ([]Result, error) {
+func (runner *Runner) runFolder(folder string, results chan<- Result) {
 	policy, err := cpa.LoadPolicyFromFS(folder)
 	if err != nil {
-		return nil, err
+		results <- Result{
+			Group: folder,
+			Err:   err,
+			Ok:    errors.Is(err, cpa.ErrNoPolicies),
+		}
+		return
 	}
 
 	nameSet := map[string]struct{}{}
@@ -169,7 +103,11 @@ func (runner Runner) execFolderTests(folder string) ([]Result, error) {
 
 	entries, err := os.ReadDir(folder)
 	if err != nil {
-		return nil, err
+		results <- Result{
+			Group: folder,
+			Err:   err,
+		}
+		return
 	}
 
 	for _, entry := range entries {
@@ -184,78 +122,103 @@ func (runner Runner) execFolderTests(folder string) ([]Result, error) {
 
 		tests, err := loadTests(testPath)
 		if err != nil {
-			return nil, err
+			results <- Result{
+				Group: folder,
+				Err:   err,
+			}
+			return
 		}
 
 		for name, test := range tests {
 			if _, ok := nameSet[name]; ok {
-				return nil, fmt.Errorf("test name conflict: %q", name)
+				results <- Result{
+					Group: folder,
+					Err:   fmt.Errorf("test name conflict: %q", name),
+				}
+				return
 			}
 			nameSet[name] = struct{}{}
 			namedTests = append(namedTests, NamedTest{name, test})
 		}
 	}
 
+	if len(namedTests) == 0 {
+		results <- Result{
+			Group: folder,
+			Ok:    true,
+			Err:   ErrNoTests,
+		}
+		return
+	}
+
 	slices.SortFunc(namedTests, func(a, b NamedTest) bool { return a.Name < b.Name })
 
-	var results []Result
 	for _, t := range namedTests {
-		results = append(results, t.Run(policy, TestRunOptions{
-			Parent:  ParentTestContext{},
-			Include: runner.opts.Include,
-		})...)
+		runner.runTest(policy, results, t, folder, ParentTestContext{})
 	}
-
-	return results, nil
 }
 
-func loadTests(path string) (tests map[string]*Test, err error) {
-	//nolint gosec
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	err = yaml.Unmarshal(data, &tests)
-	if err != nil {
-		return
-	}
-	for _, t := range tests {
-		sanitizeTest(t)
-	}
-	return
-}
+func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t NamedTest, group string, parent ParentTestContext) {
+	input := func() any {
+		if t.Input == nil {
+			return parent.Input
+		}
+		return internal.Merge(parent.Input, t.Input)
+	}()
 
-func getTestFolders(path string) (folders []string, err error) {
-	if path != "./..." {
-		path = strings.TrimPrefix(path, "./")
-	}
-	if !strings.HasSuffix(path, "/...") {
-		return []string{path}, nil
-	}
-	err = filepath.WalkDir(path[:len(path)-4], func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
+	meta := func() any {
+		if t.Meta == nil {
+			return parent.Meta
 		}
-		if !d.IsDir() {
-			return nil
-		}
-		if name := d.Name(); len(name) > 1 && name[0] == '.' {
-			return filepath.SkipDir
-		}
-		folders = append(folders, path)
-		return nil
-	})
-	return
-}
+		return internal.Merge(parent.Meta, t.Meta)
+	}()
 
-func sanitizeTest(t *Test) {
-	if t == nil {
-		return
+	name := t.Name
+	if parent.Name != "" {
+		name = parent.Name + "/" + name
 	}
-	t.Decision = internal.Must(internal.ConvertYAMLMapKeyTypes(t.Decision))
-	t.Input = internal.Must(internal.ConvertYAMLMapKeyTypes(t.Input))
-	t.Meta = internal.Must(internal.ConvertYAMLMapKeyTypes(t.Meta))
-	for _, t := range t.Cases {
-		sanitizeTest(t)
+
+	if runner.opts.Include == nil || runner.opts.Include.MatchString(name) {
+		eval, _ := policy.Eval(context.Background(), "data", input, cpa.Meta(meta))
+
+		start := time.Now()
+		var decision any = internal.Must(policy.Decide(context.Background(), input, cpa.Meta(meta)))
+		elapsed := time.Since(start)
+
+		decision = internal.Must(internal.ToRawInterface(decision))
+
+		d := internal.Must(diff.Diff(decision, t.Decision))
+
+		results <- Result{
+			Group: group,
+			Name:  name,
+			Ok:    d.Diff() == diff.Identical,
+			Err: func() error {
+				if d.Diff() == diff.Identical {
+					return nil
+				}
+				return errors.New(d.StringIndent("", "  ", diff.Output{
+					Indent:     "  ",
+					Colorized:  true,
+					JSON:       true,
+					JSONValues: true,
+				}))
+			}(),
+			Elapsed: elapsed,
+			Ctx: map[string]any{
+				"input":      input,
+				"meta":       meta,
+				"decision":   decision,
+				"evaluation": eval,
+			},
+		}
+	}
+
+	for _, subtest := range t.NamedCases() {
+		runner.runTest(policy, results, subtest, group, ParentTestContext{
+			Name:  name,
+			Input: input,
+			Meta:  meta,
+		})
 	}
 }

@@ -1,41 +1,120 @@
 package tester
 
 import (
+	"errors"
 	"fmt"
-	"reflect"
+	"io"
+	"os"
 	"time"
 
-	"gopkg.in/yaml.v2"
+	"github.com/CircleCI-Public/circle-policy-agent/cpa"
+	"github.com/CircleCI-Public/circle-policy-agent/internal"
+	"gopkg.in/yaml.v3"
 )
 
 type Result struct {
-	Name string
-	Ok   bool
-	Err  error
+	Group string
+	Name  string
+	Ok    bool
+	Err   error
 
 	Elapsed time.Duration
 
 	Ctx any
 }
+type ResultHandler interface {
+	HandleResults(c <-chan Result) (success bool)
+}
+type resultHandler struct {
+	table   internal.TableWriter
+	verbose bool
+	debug   bool
+}
 
-func (runner Runner) printResult(result Result) {
-	if result.Ok && !runner.opts.Debug && !runner.opts.Verbose {
-		return
+func (rh resultHandler) HandleResults(c <-chan Result) bool {
+	type Group struct {
+		Name    string
+		Status  string
+		Elapsed time.Duration
 	}
 
-	status := "PASS"
-	if !result.Ok {
-		status = "FAIL"
+	var (
+		group       Group
+		failed      int
+		passed      int
+		errorGroups int
+		totalTime   time.Duration
+		result      Result
+	)
+
+	for result = range c {
+		totalTime += result.Elapsed
+
+		// Handle an Error Group
+		if result.Name == "" {
+			switch {
+			case errors.Is(result.Err, cpa.ErrNoPolicies):
+				rh.table.Row("?", result.Group, "no policies")
+			case errors.Is(result.Err, ErrNoTests):
+				rh.table.Row("?", result.Group, "no tests")
+			default:
+				errorGroups++
+				rh.table.Row("fail", result.Group, result.Err)
+			}
+			continue
+		}
+
+		if result.Group != group.Name {
+			if group.Name != "" {
+				rh.table.Row(group.Status, group.Name, fmt.Sprintf("%.3fs", group.Elapsed.Seconds()))
+			}
+			group = Group{Status: "ok", Name: result.Group}
+		}
+
+		group.Elapsed += result.Elapsed
+		if result.Ok {
+			passed++
+			if rh.verbose {
+				rh.table.Row("ok", result.Name, fmt.Sprintf("%.3fs", result.Elapsed.Seconds()))
+			}
+		} else {
+			group.Status = "fail"
+			failed++
+			rh.table.Row("FAIL", result.Name, fmt.Sprintf("%.3fs", result.Elapsed.Seconds()))
+			rh.table.Textln(result.Err.Error())
+		}
+		if rh.debug {
+			rh.table.Textln("---- Debug Test Context ----")
+			yaml.NewEncoder(rh.table).Encode(result.Ctx)
+			rh.table.Textln("---- End of Test Context ---")
+		}
 	}
 
-	runner.writer.Row(status, result.Name, fmt.Sprintf("%.3fs", result.Elapsed.Seconds()))
-
-	if !result.Ok && result.Err != nil {
-		runner.writer.Textln(result.Err.Error())
+	if result.Name != "" {
+		rh.table.Row(group.Status, group.Name, fmt.Sprintf("%.3fs", group.Elapsed.Seconds()))
 	}
-	if runner.opts.Debug && !reflect.ValueOf(result.Ctx).IsZero() {
-		runner.writer.Textln("\n------- Begin Test Context ------")
-		_ = yaml.NewEncoder(runner.writer).Encode(result.Ctx)
-		runner.writer.Textln("------- End Test Context --------\n")
+
+	rh.table.Textf("\n%d/%d tests passed (%.3fs)\n", passed, passed+failed, totalTime.Seconds())
+
+	return failed == 0 && errorGroups == 0
+}
+
+type ResultHandlerOptions struct {
+	Verbose bool
+	Debug   bool
+	Dst     io.WriteCloser
+}
+
+func MakeDefaultResultHandler(opts ResultHandlerOptions) ResultHandler {
+	if opts.Dst == nil {
+		opts.Dst = os.Stderr
+	}
+	if opts.Debug {
+		opts.Verbose = true
+	}
+	return resultHandler{
+		table:   internal.MakeTableWriter(opts.Dst),
+		verbose: opts.Verbose,
+		debug:   opts.Debug,
 	}
 }
