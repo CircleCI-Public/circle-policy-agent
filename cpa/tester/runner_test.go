@@ -23,6 +23,23 @@ func TestRunner(t *testing.T) {
 	runner, err := NewRunner(options)
 	require.NoError(t, err)
 
+	require.Equal(t, []string{
+		".",
+		"policies",
+		"policies/common",
+		"policies/common/base",
+		"policies/common/error",
+		"policies/common/no_rules",
+		"policies/common/reason_types",
+		"policies/common/soft_and_hard_fail_together",
+		"policies/helpers",
+		"policies/helpers/jobs",
+		"policies/helpers/orbs",
+		"policies/helpers/orbs/ban_version",
+		"policies/helpers/orbs/require_version",
+		"policies/helpers/runner",
+	}, runner.folders)
+
 	require.True(t, runner.RunAndHandleResults(MakeDefaultResultHandler(ResultHandlerOptions{
 		Verbose: os.Getenv("VERBOSE") == "true",
 		Debug:   os.Getenv("DEBUG") == "true",

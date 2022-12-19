@@ -1,6 +1,7 @@
 package tester
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -22,6 +23,32 @@ type Result struct {
 
 	Ctx any
 }
+
+func (r Result) MarshalJSON() ([]byte, error) {
+	value := struct {
+		Group     string
+		Name      string
+		Ok        bool
+		Err       string
+		ElapsedMS int64
+		Ctx       any
+	}{
+		Group: r.Group,
+		Name:  r.Name,
+		Ok:    r.Ok,
+		Err: func() string {
+			if r.Err == nil {
+				return ""
+			}
+			return r.Err.Error()
+		}(),
+		ElapsedMS: r.Elapsed.Milliseconds(),
+		Ctx:       r.Ctx,
+	}
+
+	return json.Marshal(value)
+}
+
 type ResultHandler interface {
 	HandleResults(c <-chan Result) (success bool)
 }
