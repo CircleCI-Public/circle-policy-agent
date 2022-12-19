@@ -38,6 +38,10 @@ func TestRunner(t *testing.T) {
 		"policies/helpers/orbs/ban_version",
 		"policies/helpers/orbs/require_version",
 		"policies/helpers/runner",
+		"policies/multifile",
+		"policies/multifile/sub0",
+		"policies/multifile/sub1",
+		"policies/multifile/sub1/sub1_0",
 	}, runner.folders)
 
 	require.True(t, runner.RunAndHandleResults(MakeDefaultResultHandler(ResultHandlerOptions{
