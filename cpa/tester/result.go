@@ -71,10 +71,9 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 		passed      int
 		errorGroups int
 		totalTime   time.Duration
-		result      Result
 	)
 
-	for result = range c {
+	for result := range c {
 		totalTime += result.Elapsed
 
 		// Handle an Error Group
@@ -117,9 +116,7 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 		}
 	}
 
-	if result.Name != "" {
-		rh.table.Row(group.Status, group.Name, fmt.Sprintf("%.3fs", group.Elapsed.Seconds()))
-	}
+	rh.table.Row(group.Status, group.Name, fmt.Sprintf("%.3fs", group.Elapsed.Seconds()))
 
 	rh.table.Textf("\n%d/%d tests passed (%.3fs)\n", passed, passed+failed, totalTime.Seconds())
 
