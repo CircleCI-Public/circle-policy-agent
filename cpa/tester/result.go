@@ -85,7 +85,7 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 		}
 		if rh.debug {
 			rh.table.Textln("---- Debug Test Context ----")
-			yaml.NewEncoder(rh.table).Encode(result.Ctx)
+			_ = yaml.NewEncoder(rh.table).Encode(result.Ctx)
 			rh.table.Textln("---- End of Test Context ---")
 		}
 	}
