@@ -118,7 +118,9 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 		}
 	}
 
-	rh.table.Row(group.Status, group.Name, fmt.Sprintf("%.3fs", group.Elapsed.Seconds()))
+	if group.Name != "" {
+		rh.table.Row(group.Status, group.Name, fmt.Sprintf("%.3fs", group.Elapsed.Seconds()))
+	}
 
 	rh.table.Textf("\n%d/%d tests passed (%.3fs)\n", passed, passed+failed, totalTime.Seconds())
 
@@ -156,7 +158,7 @@ func (jrh jsonResultHandler) HandleResults(c <-chan Result) bool {
 type ResultHandlerOptions struct {
 	Verbose bool
 	Debug   bool
-	Dst     io.WriteCloser
+	Dst     io.Writer
 }
 
 func MakeDefaultResultHandler(opts ResultHandlerOptions) ResultHandler {
