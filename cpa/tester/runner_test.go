@@ -29,7 +29,7 @@ func TestRunner(t *testing.T) {
 		"policies/common",
 		"policies/common/base",
 		"policies/common/error",
-		"policies/common/no_rules",
+		"policies/common/no_enabled_rules",
 		"policies/common/reason_types",
 		"policies/common/soft_and_hard_fail_together",
 		"policies/helpers",
@@ -140,8 +140,8 @@ func TestRunnerResults(t *testing.T) {
 			},
 			{
 			  "Ok": true,
-			  "Group": "policies/common/no_rules",
-			  "Name": "test_no_rules",
+			  "Group": "policies/common/no_enabled_rules",
+			  "Name": "test_no_enabled_rules",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
 			},
