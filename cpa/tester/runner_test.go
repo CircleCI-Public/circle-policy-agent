@@ -11,7 +11,7 @@ import (
 
 func TestRunner(t *testing.T) {
 	options := RunnerOptions{
-		Path: "./...",
+		Path: "./policies/...",
 		Include: func() *regexp.Regexp {
 			run := os.Getenv("RUN")
 			if run == "" {
@@ -25,7 +25,6 @@ func TestRunner(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, []string{
-		".",
 		"policies",
 		"policies/common",
 		"policies/common/base",
@@ -54,7 +53,7 @@ func TestRunner(t *testing.T) {
 
 func TestRunnerResults(t *testing.T) {
 	options := RunnerOptions{
-		Path: "./...",
+		Path: "./policies/...",
 		Include: func() *regexp.Regexp {
 			run := os.Getenv("RUN")
 			if run == "" {
@@ -96,13 +95,6 @@ func TestRunnerResults(t *testing.T) {
 			  "Name": "data.org.test_get_job_name_string",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
-			},
-			{
-			  "Ok": true,
-			  "Group": ".",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0,
-			  "Err": "no tests"
 			},
 			{
 			  "Ok": true,
@@ -343,6 +335,55 @@ func TestRunnerResults(t *testing.T) {
 			  "Err": "no tests"
 			}
 		  ]`,
+		buf.String(),
+	)
+}
+
+func TestFailedPolicies(t *testing.T) {
+	options := RunnerOptions{
+		Path: "./failed_policies/...",
+		Include: func() *regexp.Regexp {
+			run := os.Getenv("RUN")
+			if run == "" {
+				return nil
+			}
+			return regexp.MustCompile(run)
+		}(),
+	}
+
+	runner, err := NewRunner(options)
+	require.NoError(t, err)
+
+	sanitizedResults := make(chan Result)
+	go func() {
+		for r := range runner.Run() {
+			r.Elapsed = 0 // We cannot statically assert the elapsed time so we zero it out
+			sanitizedResults <- r
+		}
+		close(sanitizedResults)
+	}()
+
+	buf := new(bytes.Buffer)
+	opts := ResultHandlerOptions{Dst: buf}
+
+	MakeJSONResultHandler(opts).HandleResults(sanitizedResults)
+
+	require.JSONEq(t, `[
+		{
+		  "Ok": false,
+		  "Group": "\u003copa.tests\u003e",
+		  "Name": "data.org.test_int_is_string",
+		  "Elapsed": "0s",
+		  "ElapsedMS": 0
+		},
+		{
+		  "Ok": true,
+		  "Group": "failed_policies",
+		  "Elapsed": "0s",
+		  "ElapsedMS": 0,
+		  "Err": "no tests"
+		}
+	  ]`,
 		buf.String(),
 	)
 }
