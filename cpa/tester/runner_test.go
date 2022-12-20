@@ -226,27 +226,6 @@ func TestRunnerResults(t *testing.T) {
 			{
 			  "Ok": true,
 			  "Group": "policies/helpers/orbs/ban_version",
-			  "Name": "ban_orbs_version",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Ok": true,
-			  "Group": "policies/helpers/orbs/ban_version",
-			  "Name": "ban_orbs_version/exact_match",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Ok": true,
-			  "Group": "policies/helpers/orbs/ban_version",
-			  "Name": "ban_orbs_version/wrong_version",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Ok": true,
-			  "Group": "policies/helpers/orbs/ban_version",
 			  "Name": "test_ban_orbs",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
@@ -258,6 +237,27 @@ func TestRunnerResults(t *testing.T) {
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
 			},
+			{
+				"Ok": true,
+				"Group": "policies/helpers/orbs/ban_version",
+				"Name": "test_ban_orbs_version",
+				"Elapsed": "0s",
+				"ElapsedMS": 0
+			  },
+			  {
+				"Ok": true,
+				"Group": "policies/helpers/orbs/ban_version",
+				"Name": "test_ban_orbs_version/exact_match",
+				"Elapsed": "0s",
+				"ElapsedMS": 0
+			  },
+			  {
+				"Ok": true,
+				"Group": "policies/helpers/orbs/ban_version",
+				"Name": "test_ban_orbs_version/wrong_version",
+				"Elapsed": "0s",
+				"ElapsedMS": 0
+			  },
 			{
 			  "Ok": true,
 			  "Group": "policies/helpers/orbs/require_version",

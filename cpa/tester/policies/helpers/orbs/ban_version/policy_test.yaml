@@ -19,7 +19,7 @@ test_ban_orbs:
           - rule: ban_orbs
             reason: bad orb is not allowed in CircleCI configuration
 
-ban_orbs_version:
+test_ban_orbs_version:
   meta:
     require_version: true
   decision:
