@@ -1,4 +1,4 @@
-test_base_policy:
+test_multifile_policy:
   input:
     name: bob
   decision:
