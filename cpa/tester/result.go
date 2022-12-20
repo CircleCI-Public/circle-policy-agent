@@ -26,24 +26,26 @@ type Result struct {
 
 func (r Result) MarshalJSON() ([]byte, error) {
 	value := struct {
-		Group     string
-		Name      string
 		Ok        bool
-		Err       string
+		Group     string
+		Name      string `json:",omitempty"`
+		Elapsed   string
 		ElapsedMS int64
-		Ctx       any
+		Err       string `json:",omitempty"`
+		Ctx       any    `json:",omitempty"`
 	}{
-		Group: r.Group,
-		Name:  r.Name,
-		Ok:    r.Ok,
+		Ok:        r.Ok,
+		Group:     r.Group,
+		Name:      r.Name,
+		Elapsed:   r.Elapsed.String(),
+		ElapsedMS: r.Elapsed.Milliseconds(),
 		Err: func() string {
 			if r.Err == nil {
 				return ""
 			}
 			return r.Err.Error()
 		}(),
-		ElapsedMS: r.Elapsed.Milliseconds(),
-		Ctx:       r.Ctx,
+		Ctx: r.Ctx,
 	}
 
 	return json.Marshal(value)
@@ -123,6 +125,34 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 	return failed == 0 && errorGroups == 0
 }
 
+type jsonResultHandler struct {
+	w     io.Writer
+	debug bool
+}
+
+func (jrh jsonResultHandler) HandleResults(c <-chan Result) bool {
+	var (
+		ok      = true
+		results = []Result{}
+	)
+
+	for result := range c {
+		if !result.Ok {
+			ok = false
+		}
+		if !jrh.debug {
+			result.Ctx = nil
+		}
+		results = append(results, result)
+	}
+
+	enc := json.NewEncoder(jrh.w)
+	enc.SetIndent("", "  ")
+
+	_ = enc.Encode(results)
+	return ok
+}
+
 type ResultHandlerOptions struct {
 	Verbose bool
 	Debug   bool
@@ -141,4 +171,11 @@ func MakeDefaultResultHandler(opts ResultHandlerOptions) ResultHandler {
 		verbose: opts.Verbose,
 		debug:   opts.Debug,
 	}
+}
+
+func MakeJSONResultHandler(opts ResultHandlerOptions) ResultHandler {
+	if opts.Dst == nil {
+		opts.Dst = os.Stderr
+	}
+	return jsonResultHandler{opts.Dst, opts.Debug}
 }
