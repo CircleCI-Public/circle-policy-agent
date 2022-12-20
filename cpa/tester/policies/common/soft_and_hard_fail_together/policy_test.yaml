@@ -1,0 +1,12 @@
+test_soft_and_hard_fail_together:
+  decision:
+    status: HARD_FAIL
+    enabled_rules:
+      - hard_failure_rule
+      - soft_failure_rule
+    soft_failures:
+      - rule: soft_failure_rule
+        reason: soft failure!
+    hard_failures:
+      - rule: hard_failure_rule
+        reason: hard failure!

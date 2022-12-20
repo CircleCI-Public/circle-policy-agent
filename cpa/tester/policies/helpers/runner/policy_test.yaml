@@ -1,0 +1,40 @@
+test_runner_helper:
+  input:
+    jobs:
+      small_job:
+        resource_class: small
+      medium_job:
+        resource_class: medium
+      large_job:
+        resource_class: large
+  meta:
+    project_id: large
+  decision:
+    status: PASS
+    enabled_rules:
+      - manage_resource_classes
+
+  cases:
+    project_small:
+      meta:
+        project_id: small
+      decision:
+        status: SOFT_FAIL
+        enabled_rules:
+          - manage_resource_classes
+        soft_failures:
+          - rule: manage_resource_classes
+            reason: project is not allowed to use resource_class "large" declared in job "large_job"
+          - rule: manage_resource_classes
+            reason: project is not allowed to use resource_class "medium" declared in job "medium_job"
+
+    project_medium:
+      meta:
+        project_id: medium
+      decision:
+        status: SOFT_FAIL
+        enabled_rules:
+          - manage_resource_classes
+        soft_failures:
+          - rule: manage_resource_classes
+            reason: project is not allowed to use resource_class "large" declared in job "large_job"
