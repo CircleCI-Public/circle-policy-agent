@@ -109,7 +109,9 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 			group.Status = "fail"
 			failed++
 			rh.table.Row("FAIL", result.Name, fmt.Sprintf("%.3fs", result.Elapsed.Seconds()))
-			rh.table.Textln(result.Err.Error())
+			if result.Err != nil {
+				rh.table.Textln(result.Err.Error())
+			}
 		}
 		if rh.debug {
 			rh.table.Textln("---- Debug Test Context ----")
