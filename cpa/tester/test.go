@@ -48,6 +48,13 @@ func loadTests(path string) (tests map[string]*Test, err error) {
 	if err != nil {
 		return
 	}
+
+	for name := range tests {
+		if !strings.HasPrefix(name, "test_") {
+			delete(tests, name)
+		}
+	}
+
 	for _, t := range tests {
 		sanitizeTest(t)
 	}
