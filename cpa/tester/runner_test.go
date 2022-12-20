@@ -52,7 +52,7 @@ func TestRunner(t *testing.T) {
 	})))
 }
 
-func TestRunneResults(t *testing.T) {
+func TestRunnerResults(t *testing.T) {
 	options := RunnerOptions{
 		Path: "./...",
 		Include: func() *regexp.Regexp {

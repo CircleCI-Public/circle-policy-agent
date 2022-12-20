@@ -34,12 +34,12 @@ func NewRunner(opts RunnerOptions) (*Runner, error) {
 		opts.Path = "./..."
 	}
 
-	folder, err := getTestFolders(opts.Path)
+	folders, err := getTestFolders(opts.Path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to lookup test folders: %w", err)
 	}
 
-	return &Runner{folders: folder, opts: opts}, nil
+	return &Runner{folders: folders, opts: opts}, nil
 }
 
 func (runner *Runner) Run() <-chan Result {
