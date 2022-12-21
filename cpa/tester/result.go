@@ -14,10 +14,10 @@ import (
 )
 
 type Result struct {
-	Group string
-	Name  string
-	Ok    bool
-	Err   error
+	Group  string
+	Name   string
+	Passed bool
+	Err    error
 
 	Elapsed time.Duration
 
@@ -26,7 +26,7 @@ type Result struct {
 
 func (r Result) MarshalJSON() ([]byte, error) {
 	value := struct {
-		Ok        bool
+		Passed    bool
 		Group     string
 		Name      string `json:",omitempty"`
 		Elapsed   string
@@ -34,7 +34,7 @@ func (r Result) MarshalJSON() ([]byte, error) {
 		Err       string `json:",omitempty"`
 		Ctx       any    `json:",omitempty"`
 	}{
-		Ok:        r.Ok,
+		Passed:    r.Passed,
 		Group:     r.Group,
 		Name:      r.Name,
 		Elapsed:   r.Elapsed.String(),
@@ -100,7 +100,7 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 		}
 
 		group.Elapsed += result.Elapsed
-		if result.Ok {
+		if result.Passed {
 			passed++
 			if rh.verbose {
 				rh.table.Row("ok", result.Name, fmt.Sprintf("%.3fs", result.Elapsed.Seconds()))
@@ -141,7 +141,7 @@ func (jrh jsonResultHandler) HandleResults(c <-chan Result) bool {
 	)
 
 	for result := range c {
-		if !result.Ok {
+		if !result.Passed {
 			ok = false
 		}
 		if !jrh.debug {

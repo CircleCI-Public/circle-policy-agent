@@ -80,7 +80,7 @@ func (runner *Runner) runOpaTests(results chan<- Result) {
 		results <- Result{
 			Group:   "<opa.tests>",
 			Name:    name,
-			Ok:      r.Pass(),
+			Passed:  r.Pass(),
 			Elapsed: r.Duration,
 			Err:     r.Error,
 		}
@@ -91,9 +91,9 @@ func (runner *Runner) runFolder(folder string, results chan<- Result) {
 	policy, err := cpa.LoadPolicyFromFS(folder)
 	if err != nil {
 		results <- Result{
-			Group: folder,
-			Err:   err,
-			Ok:    errors.Is(err, cpa.ErrNoPolicies),
+			Group:  folder,
+			Err:    err,
+			Passed: errors.Is(err, cpa.ErrNoPolicies),
 		}
 		return
 	}
@@ -144,9 +144,9 @@ func (runner *Runner) runFolder(folder string, results chan<- Result) {
 
 	if len(namedTests) == 0 {
 		results <- Result{
-			Group: folder,
-			Ok:    true,
-			Err:   ErrNoTests,
+			Group:  folder,
+			Passed: true,
+			Err:    ErrNoTests,
 		}
 		return
 	}
@@ -190,9 +190,9 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 		d := internal.Must(diff.Diff(decision, t.Decision))
 
 		results <- Result{
-			Group: group,
-			Name:  name,
-			Ok:    d.Diff() == diff.Identical,
+			Group:  group,
+			Name:   name,
+			Passed: d.Diff() == diff.Identical,
 			Err: func() error {
 				if d.Diff() == diff.Identical {
 					return nil
