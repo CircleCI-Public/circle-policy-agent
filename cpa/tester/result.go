@@ -68,15 +68,23 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 	}
 
 	var (
-		group       Group
-		failed      int
-		passed      int
-		errorGroups int
-		totalTime   time.Duration
+		currentGroup Group
+		failed       int
+		passed       int
+		errorGroups  int
+		totalTime    time.Duration
 	)
 
 	for result := range c {
 		totalTime += result.Elapsed
+
+		// On group changes we must print the current group status before updating
+		if result.Group != currentGroup.Name {
+			if currentGroup.Name != "" {
+				rh.table.Row(currentGroup.Status, currentGroup.Name, fmt.Sprintf("%.3fs", currentGroup.Elapsed.Seconds()))
+			}
+			currentGroup = Group{Status: "ok", Name: result.Group}
+		}
 
 		// Handle an Error Group
 		if result.Name == "" {
@@ -89,24 +97,20 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 				errorGroups++
 				rh.table.Row("fail", result.Group, result.Err)
 			}
+			// We have printed our group result since we knew it immediately since it was an error group,
+			// thus we can reset group state to nothing so it doesn't get printed twice on group switches
+			currentGroup = Group{}
 			continue
 		}
 
-		if result.Group != group.Name {
-			if group.Name != "" {
-				rh.table.Row(group.Status, group.Name, fmt.Sprintf("%.3fs", group.Elapsed.Seconds()))
-			}
-			group = Group{Status: "ok", Name: result.Group}
-		}
-
-		group.Elapsed += result.Elapsed
+		currentGroup.Elapsed += result.Elapsed
 		if result.Passed {
 			passed++
 			if rh.verbose {
 				rh.table.Row("ok", result.Name, fmt.Sprintf("%.3fs", result.Elapsed.Seconds()))
 			}
 		} else {
-			group.Status = "fail"
+			currentGroup.Status = "fail"
 			failed++
 			rh.table.Row("FAIL", result.Name, fmt.Sprintf("%.3fs", result.Elapsed.Seconds()))
 			if result.Err != nil {
@@ -120,8 +124,9 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 		}
 	}
 
-	if group.Name != "" {
-		rh.table.Row(group.Status, group.Name, fmt.Sprintf("%.3fs", group.Elapsed.Seconds()))
+	// Print the last group status after the result loop ends
+	if currentGroup.Name != "" {
+		rh.table.Row(currentGroup.Status, currentGroup.Name, fmt.Sprintf("%.3fs", currentGroup.Elapsed.Seconds()))
 	}
 
 	rh.table.Textf("\n%d/%d tests passed (%.3fs)\n", passed, passed+failed, totalTime.Seconds())

@@ -18,7 +18,7 @@ import (
 )
 
 type Runner struct {
-	opts    RunnerOptions
+	include *regexp.Regexp
 	folders []string
 }
 
@@ -39,18 +39,18 @@ func NewRunner(opts RunnerOptions) (*Runner, error) {
 		return nil, fmt.Errorf("failed to lookup test folders: %w", err)
 	}
 
-	return &Runner{folders: folders, opts: opts}, nil
+	return &Runner{folders: folders, include: opts.Include}, nil
 }
 
 func (runner *Runner) Run() <-chan Result {
 	results := make(chan Result)
 
 	go func() {
-		defer close(results)
 		runner.runOpaTests(results)
 		for _, folder := range runner.folders {
 			runner.runFolder(folder, results)
 		}
+		close(results)
 	}()
 
 	return results
@@ -65,6 +65,9 @@ func (runner *Runner) runOpaTests(results chan<- Result) {
 
 	policy, err := cpa.LoadPolicyFromFS(root)
 	if err != nil {
+		if errors.Is(err, cpa.ErrNoPolicies) {
+			return
+		}
 		results <- Result{
 			Group: "<opa.tests>",
 			Err:   err,
@@ -74,7 +77,7 @@ func (runner *Runner) runOpaTests(results chan<- Result) {
 
 	for r := range internal.Must(tester.NewRunner().Run(context.Background(), policy.Modules())) {
 		name := r.Package + "." + r.Name
-		if runner.opts.Include != nil && !runner.opts.Include.MatchString(name) {
+		if runner.include != nil && !runner.include.MatchString(name) {
 			continue
 		}
 		results <- Result{
@@ -178,7 +181,7 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 		name = parent.Name + "/" + name
 	}
 
-	if runner.opts.Include == nil || runner.opts.Include.MatchString(name) {
+	if runner.include == nil || runner.include.MatchString(name) {
 		eval, _ := policy.Eval(context.Background(), "data", input, cpa.Meta(meta))
 
 		start := time.Now()
