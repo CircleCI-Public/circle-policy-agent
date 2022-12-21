@@ -113,29 +113,17 @@ issues:
 linters:
   disable-all: true
   enable:
-    - bodyclose
     - deadcode
     - depguard
     - errcheck
-    # - funlen
     - goconst
-    # - gocyclo
     - gofmt
     - goimports
     - gosec
-    - gosimple
     - govet
     - ineffassign
-    # - lll
     - misspell
-    - nakedret
     - prealloc
-    # - revive
-    - staticcheck
-    - structcheck
-    - stylecheck
     - typecheck
     - unconvert
-    - unparam
-    - unused
     - varcheck

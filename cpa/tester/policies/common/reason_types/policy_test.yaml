@@ -1,0 +1,42 @@
+test_reason_types:
+  decision:
+    status: PASS
+    enabled_rules:
+      - reason_type_rule
+
+  cases:
+    string:
+      meta: 
+        type: string
+      decision:
+        status: SOFT_FAIL
+        enabled_rules:
+          - reason_type_rule
+        soft_failures:
+          - rule: reason_type_rule
+            reason: string error
+    array:
+      meta:
+        type: array
+      decision:
+        status: SOFT_FAIL
+        enabled_rules:
+          - reason_type_rule
+        soft_failures:
+          - rule: reason_type_rule
+            reason: reason one
+          - rule: reason_type_rule
+            reason: reason two
+    map:
+      meta:
+        type: map
+      decision:
+        status: SOFT_FAIL
+        enabled_rules:
+          - reason_type_rule
+        soft_failures:
+          - rule: reason_type_rule
+            reason: r1
+          - rule: reason_type_rule
+            reason: r2
+        

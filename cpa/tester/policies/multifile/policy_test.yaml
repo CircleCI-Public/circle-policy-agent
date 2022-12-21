@@ -1,0 +1,11 @@
+test_multifile_policy:
+  input:
+    name: bob
+  decision:
+    status: PASS
+    enabled_rules:
+      - multifile_policy1
+      - multifile_policy2
+      - multifile_policy3
+      - multifile_policy4
+      

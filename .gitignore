@@ -21,3 +21,5 @@ coverage.txt
 /target
 /.vscode
 .dccache
+
+/temp

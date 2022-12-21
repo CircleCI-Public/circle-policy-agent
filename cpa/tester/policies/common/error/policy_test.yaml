@@ -1,0 +1,4 @@
+test_error:
+  decision:
+    status: ERROR
+    reason: 'policies/common/error/policy.rego:6: eval_conflict_error: complete rules must not produce multiple outputs'

@@ -1,0 +1,3 @@
+test_no_enabled_rules:
+  decision:
+    status: PASS
