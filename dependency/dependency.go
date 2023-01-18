@@ -3,7 +3,7 @@
 // more recent (non-vulnerable) version of the dependency in the go.mod file resolves this issue.
 package dependency
 
-import (
+// import (
 // nolint:revive
 // _ "github.com/aws/aws-sdk-go"
 // _ "github.com/containerd/containerd"
@@ -13,4 +13,4 @@ import (
 // _ "gopkg.in/yaml.v2"
 // _ "k8s.io/client-go"
 // _ "k8s.io/kube-openapi/pkg/validation/spec"
-)
+// )
