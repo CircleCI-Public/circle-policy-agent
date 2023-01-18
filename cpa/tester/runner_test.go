@@ -2,6 +2,7 @@ package tester
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"regexp"
 	"testing"
@@ -33,6 +34,7 @@ func TestRunner(t *testing.T) {
 		"policies/common/reason_types",
 		"policies/common/soft_and_hard_fail_together",
 		"policies/helpers",
+		"policies/helpers/contexts",
 		"policies/helpers/jobs",
 		"policies/helpers/orbs",
 		"policies/helpers/orbs/ban_version",
@@ -79,6 +81,8 @@ func TestRunnerResults(t *testing.T) {
 	opts := ResultHandlerOptions{Dst: buf}
 
 	MakeJSONResultHandler(opts).HandleResults(sanitizedResults)
+
+	fmt.Println(buf.String())
 
 	require.JSONEq(t,
 		`[
@@ -189,6 +193,90 @@ func TestRunnerResults(t *testing.T) {
 			},
 			{
 			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_allowlist",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_allowlist/invalid_context",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_allowlist/invalid_contexts",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_allowlist/test_multiple_invalid_contexts_in_job",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_allowlist/test_unaffected_project",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_blocklist",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_blocklist/invalid_context",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_blocklist/invalid_contexts",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_blocklist/unaffected_project",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_branch_allowlist",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_branch_allowlist/invalid_branch",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_branch_allowlist/unrestricted_by_branch",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
 			  "Group": "policies/helpers/jobs",
 			  "Name": "test_require_jobs",
 			  "Elapsed": "0s",
@@ -230,26 +318,26 @@ func TestRunnerResults(t *testing.T) {
 			  "ElapsedMS": 0
 			},
 			{
-				"Passed": true,
-				"Group": "policies/helpers/orbs/ban_version",
-				"Name": "test_ban_orbs_version",
-				"Elapsed": "0s",
-				"ElapsedMS": 0
-			  },
-			  {
-				"Passed": true,
-				"Group": "policies/helpers/orbs/ban_version",
-				"Name": "test_ban_orbs_version/exact_match",
-				"Elapsed": "0s",
-				"ElapsedMS": 0
-			  },
-			  {
-				"Passed": true,
-				"Group": "policies/helpers/orbs/ban_version",
-				"Name": "test_ban_orbs_version/wrong_version",
-				"Elapsed": "0s",
-				"ElapsedMS": 0
-			  },
+			  "Passed": true,
+			  "Group": "policies/helpers/orbs/ban_version",
+			  "Name": "test_ban_orbs_version",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/orbs/ban_version",
+			  "Name": "test_ban_orbs_version/exact_match",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/orbs/ban_version",
+			  "Name": "test_ban_orbs_version/wrong_version",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
 			{
 			  "Passed": true,
 			  "Group": "policies/helpers/orbs/require_version",

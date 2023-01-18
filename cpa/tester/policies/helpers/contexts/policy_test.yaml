@@ -1,0 +1,170 @@
+test_allowlist:
+  meta:
+    project_id: a
+    project_list: a
+    allowlist: [c1, c2]
+  input:
+    workflows:
+      main:
+        jobs:
+          - test:
+              context: c1
+          - build:
+              context: c2
+  decision: &root_decision
+    status: PASS
+    enabled_rules:
+      - context_allowlist
+      - context_blocklist
+      - context_branch_allowlist
+
+  cases:
+    invalid_context:
+      meta:
+        allowlist: [c0, c1]
+      decision:
+        <<: *root_decision
+        status: SOFT_FAIL
+        soft_failures:
+          - rule: context_allowlist
+            reason: 'main.build: uses context value(s) not in allowlist for project: c2'
+    invalid_contexts:
+      meta:
+        allowlist: [v1, v2]
+      decision:
+        <<: *root_decision
+        status: SOFT_FAIL
+        soft_failures:
+          - rule: context_allowlist
+            reason: 'main.build: uses context value(s) not in allowlist for project: c2'
+          - rule: context_allowlist
+            reason: 'main.test: uses context value(s) not in allowlist for project: c1'
+
+    test_unaffected_project:
+      meta:
+        project_list: [a, b, c]
+        project_id: x
+        allowlist: [v1, v2]
+      decision: *root_decision
+
+    test_multiple_invalid_contexts_in_job:
+      input:
+        workflows:
+          main:
+            jobs:
+              - test:
+                  context: [bad, dangerous, secret]
+      decision:
+        <<: *root_decision
+        status: SOFT_FAIL
+        soft_failures:
+          - rule: context_allowlist
+            reason: 'main.test: uses context value(s) not in allowlist for project: bad, dangerous, secret'
+
+test_blocklist:
+  meta:
+    project_list: a
+    project_id: a
+    blocklist: [bad, dangerous, secret]
+  input:
+    workflows:
+      main:
+        jobs:
+          - test:
+              context: [c1, c2]
+          - build:
+              context: c3
+  decision: *root_decision
+
+  cases:
+    invalid_context:
+      input:
+        workflows:
+          main:
+            jobs:
+              - test:
+                  context: bad
+      decision:
+        <<: *root_decision
+        status: SOFT_FAIL
+        soft_failures:
+          - rule: context_blocklist
+            reason: 'main.test: uses context value(s) in blocklist for project: bad'
+
+    invalid_contexts:
+      input: &bad_blocklist_override
+        workflows:
+          main:
+            jobs:
+              - test:
+                  context: bad
+              - build:
+                  context: [dangerous, secret]
+      decision:
+        <<: *root_decision
+        status: SOFT_FAIL
+        soft_failures:
+          - rule: context_blocklist
+            reason: 'main.build: uses context value(s) in blocklist for project: dangerous, secret'
+          - rule: context_blocklist
+            reason: 'main.test: uses context value(s) in blocklist for project: bad'
+
+    unaffected_project:
+      meta:
+        project_id: x
+      input: *bad_blocklist_override
+      decision: *root_decision
+
+test_branch_allowlist:
+  meta:
+    branch_list: [main, master]
+    allowlist: [secret, sensitive]
+  input:
+    workflows:
+      example:
+        jobs:
+          - test:
+              context: ok
+          - publish:
+              context: secret
+              filters:
+                branches:
+                  only: main
+  decision: *root_decision
+
+  cases:
+    invalid_branch:
+      input:
+        workflows:
+          example:
+            jobs:
+              - test:
+                  context: ok
+              - publish:
+                  context: secret
+                  filters:
+                    branches:
+                      only: [main, prod]
+      decision:
+        <<: *root_decision
+        status: SOFT_FAIL
+        soft_failures:
+          - rule: context_branch_allowlist
+            reason: 'example.publish: uses context value(s): secret - that cannot be used with branches: prod'
+
+    unrestricted_by_branch:
+      input:
+        workflows:
+          example:
+            jobs:
+              - test:
+                  context: ok
+              - publish:
+                  context: secret
+                  filters: null
+      decision:
+        <<: *root_decision
+        status: SOFT_FAIL
+        soft_failures:
+          - rule: context_branch_allowlist
+            reason: 'example.publish: uses context value(s): secret - that must be limited to branches: main, master'
