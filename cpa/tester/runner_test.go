@@ -2,7 +2,6 @@ package tester
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"regexp"
 	"testing"
@@ -81,8 +80,6 @@ func TestRunnerResults(t *testing.T) {
 	opts := ResultHandlerOptions{Dst: buf}
 
 	MakeJSONResultHandler(opts).HandleResults(sanitizedResults)
-
-	fmt.Println(buf.String())
 
 	require.JSONEq(t,
 		`[
@@ -229,28 +226,28 @@ func TestRunnerResults(t *testing.T) {
 			{
 			  "Passed": true,
 			  "Group": "policies/helpers/contexts",
-			  "Name": "test_blocklist",
+			  "Name": "test_blocked_contexts_list",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
 			},
 			{
 			  "Passed": true,
 			  "Group": "policies/helpers/contexts",
-			  "Name": "test_blocklist/invalid_context",
+			  "Name": "test_blocked_contexts_list/blocked_context",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
 			},
 			{
 			  "Passed": true,
 			  "Group": "policies/helpers/contexts",
-			  "Name": "test_blocklist/invalid_contexts",
+			  "Name": "test_blocked_contexts_list/invalid_contexts",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
 			},
 			{
 			  "Passed": true,
 			  "Group": "policies/helpers/contexts",
-			  "Name": "test_blocklist/unaffected_project",
+			  "Name": "test_blocked_contexts_list/unaffected_project",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
 			},

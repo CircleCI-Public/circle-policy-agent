@@ -61,7 +61,7 @@ test_allowlist:
           - rule: context_allowlist
             reason: 'main.test: uses context value(s) not in allowlist for project: bad, dangerous, secret'
 
-test_blocklist:
+test_blocked_contexts_list:
   meta:
     project_list: a
     project_id: a
@@ -77,7 +77,7 @@ test_blocklist:
   decision: *root_decision
 
   cases:
-    invalid_context:
+    blocked_context:
       input:
         workflows:
           main:
