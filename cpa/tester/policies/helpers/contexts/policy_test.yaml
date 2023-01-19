@@ -16,7 +16,7 @@ test_allowlist:
     enabled_rules:
       - context_allowlist
       - context_blocklist
-      - context_branch_allowlist
+      - context_branch_reservelist
 
   cases:
     invalid_context:
@@ -115,10 +115,10 @@ test_blocked_contexts_list:
       input: *bad_blocklist_override
       decision: *root_decision
 
-test_branch_allowlist:
+test_branch_reservelist:
   meta:
-    branch_list: [main, master]
-    allowlist: [secret, sensitive]
+    branch_list: [ main, master ]
+    reservelist: [ secret, sensitive ]
   input:
     workflows:
       example:
@@ -149,7 +149,7 @@ test_branch_allowlist:
         <<: *root_decision
         status: SOFT_FAIL
         soft_failures:
-          - rule: context_branch_allowlist
+          - rule: context_branch_reservelist
             reason: 'example.publish: uses context value(s): secret - that cannot be used with branches: prod'
 
     unrestricted_by_branch:
@@ -166,5 +166,5 @@ test_branch_allowlist:
         <<: *root_decision
         status: SOFT_FAIL
         soft_failures:
-          - rule: context_branch_allowlist
+          - rule: context_branch_reservelist
             reason: 'example.publish: uses context value(s): secret - that must be limited to branches: main, master'

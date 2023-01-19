@@ -254,21 +254,21 @@ func TestRunnerResults(t *testing.T) {
 			{
 			  "Passed": true,
 			  "Group": "policies/helpers/contexts",
-			  "Name": "test_branch_allowlist",
+			  "Name": "test_branch_reservelist",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
 			},
 			{
 			  "Passed": true,
 			  "Group": "policies/helpers/contexts",
-			  "Name": "test_branch_allowlist/invalid_branch",
+			  "Name": "test_branch_reservelist/invalid_branch",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
 			},
 			{
 			  "Passed": true,
 			  "Group": "policies/helpers/contexts",
-			  "Name": "test_branch_allowlist/unrestricted_by_branch",
+			  "Name": "test_branch_reservelist/unrestricted_by_branch",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
 			},

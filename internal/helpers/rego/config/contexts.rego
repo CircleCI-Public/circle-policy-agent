@@ -4,7 +4,7 @@ import data.circleci.utils
 
 import future.keywords
 
-context_blocklist_by_project_id(project_id, context_list) = {reason |
+contexts_blocked_by_project_ids(project_id, context_list) = {reason |
 	utils.to_set(project_id)[data.meta.project_id]
 
 	some wf_name, workflow in input.workflows
@@ -16,7 +16,7 @@ context_blocklist_by_project_id(project_id, context_list) = {reason |
 	reason := sprintf("%s.%s: uses context value(s) in blocklist for project: %s", [wf_name, job_name, concat(", ", illegal_contexts)])
 }
 
-context_allowlist_by_project_id(project_id, context_list) = {reason |
+contexts_allowed_by_project_ids(project_id, context_list) = {reason |
 	utils.to_set(project_id)[data.meta.project_id]
 
 	some wf_name, workflow in input.workflows
@@ -28,7 +28,7 @@ context_allowlist_by_project_id(project_id, context_list) = {reason |
 	reason := sprintf("%s.%s: uses context value(s) not in allowlist for project: %s", [wf_name, job_name, concat(", ", illegal_contexts)])
 }
 
-context_allowlist_by_branch(branch_list, context_list) = {reason |
+contexts_reserved_by_branches(branch_list, context_list) = {reason |
 	some wf_name, workflow in input.workflows
 	some job_name, job_info in workflow.jobs[_]
 
