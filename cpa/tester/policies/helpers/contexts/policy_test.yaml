@@ -87,7 +87,7 @@ test_reservelist:
         status: SOFT_FAIL
         soft_failures:
           - rule: context_reservelist
-            reason: 'main.test: uses context value(s) not in reservelist for project: c1'
+            reason: 'main.test: uses context value(s) reserved to other projects: c1'
     invalid_contexts:
       meta:
         project_id: x
@@ -97,9 +97,9 @@ test_reservelist:
         status: SOFT_FAIL
         soft_failures:
           - rule: context_reservelist
-            reason: 'main.build: uses context value(s) not in reservelist for project: c2'
+            reason: 'main.build: uses context value(s) reserved to other projects: c2'
           - rule: context_reservelist
-            reason: 'main.test: uses context value(s) not in reservelist for project: c1'
+            reason: 'main.test: uses context value(s) reserved to other projects: c1'
 
     test_unreserved_contexts:
       input:
@@ -126,7 +126,7 @@ test_reservelist:
         status: SOFT_FAIL
         soft_failures:
           - rule: context_reservelist
-            reason: 'main.test: uses context value(s) not in reservelist for project: c1, c2'
+            reason: 'main.test: uses context value(s) reserved to other projects: c1, c2'
 
 test_blocked_contexts_list:
   meta:

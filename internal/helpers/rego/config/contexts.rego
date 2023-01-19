@@ -37,7 +37,7 @@ contexts_reserved_by_project_ids(project_id, context_list) = {reason |
 	illegal_contexts := utils.to_set(job_info.context) & utils.to_set(context_list)
 	count(illegal_contexts) > 0
 
-	reason := sprintf("%s.%s: uses context value(s) not in reservelist for project: %s", [wf_name, job_name, concat(", ", illegal_contexts)])
+	reason := sprintf("%s.%s: uses context value(s) reserved to other projects: %s", [wf_name, job_name, concat(", ", illegal_contexts)])
 }
 
 contexts_reserved_by_branches(branch_list, context_list) = {reason |
