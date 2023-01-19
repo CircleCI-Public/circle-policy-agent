@@ -17,6 +17,7 @@ test_allowlist:
       - context_allowlist
       - context_blocklist
       - context_branch_reservelist
+      - context_reservelist
 
   cases:
     invalid_context:
@@ -53,7 +54,7 @@ test_allowlist:
           main:
             jobs:
               - test:
-                  context: [bad, dangerous, secret]
+                  context: [ bad, dangerous, secret ]
       decision:
         <<: *root_decision
         status: SOFT_FAIL
@@ -61,11 +62,77 @@ test_allowlist:
           - rule: context_allowlist
             reason: 'main.test: uses context value(s) not in allowlist for project: bad, dangerous, secret'
 
+test_reservelist:
+  meta:
+    project_id: a
+    project_list: a
+    reservelist: [ c1, c2 ]
+  input:
+    workflows:
+      main:
+        jobs:
+          - test:
+              context: c1
+          - build:
+              context: c2
+  decision: *root_decision
+
+  cases:
+    invalid_context:
+      meta:
+        project_id: x
+        reservelist: [ c0, c1 ]
+      decision:
+        <<: *root_decision
+        status: SOFT_FAIL
+        soft_failures:
+          - rule: context_reservelist
+            reason: 'main.test: uses context value(s) not in reservelist for project: c1'
+    invalid_contexts:
+      meta:
+        project_id: x
+        reservelist: [ c1, c2 ]
+      decision:
+        <<: *root_decision
+        status: SOFT_FAIL
+        soft_failures:
+          - rule: context_reservelist
+            reason: 'main.build: uses context value(s) not in reservelist for project: c2'
+          - rule: context_reservelist
+            reason: 'main.test: uses context value(s) not in reservelist for project: c1'
+
+    test_unreserved_contexts:
+      input:
+        workflows:
+          main:
+            jobs:
+              - test:
+                  context: [ c3, c4, c5 ]
+      decision: *root_decision
+
+    test_multiple_invalid_contexts_in_job:
+      meta:
+        project_id: x
+      input:
+        workflows:
+          main:
+            jobs:
+              - test:
+                  context: [ c1, c2, other, unreserved, context ]
+              - build:
+                  none
+      decision:
+        <<: *root_decision
+        status: SOFT_FAIL
+        soft_failures:
+          - rule: context_reservelist
+            reason: 'main.test: uses context value(s) not in reservelist for project: c1, c2'
+
 test_blocked_contexts_list:
   meta:
     project_list: a
     project_id: a
-    blocklist: [bad, dangerous, secret]
+    blocklist: [ bad, dangerous, secret ]
   input:
     workflows:
       main:

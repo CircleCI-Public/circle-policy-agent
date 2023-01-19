@@ -274,6 +274,41 @@ func TestRunnerResults(t *testing.T) {
 			},
 			{
 			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_reservelist",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_reservelist/invalid_context",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_reservelist/invalid_contexts",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_reservelist/test_multiple_invalid_contexts_in_job",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_reservelist/test_unreserved_contexts",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
 			  "Group": "policies/helpers/jobs",
 			  "Name": "test_require_jobs",
 			  "Elapsed": "0s",

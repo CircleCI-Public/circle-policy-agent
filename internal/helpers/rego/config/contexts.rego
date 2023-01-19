@@ -28,6 +28,18 @@ contexts_allowed_by_project_ids(project_id, context_list) = {reason |
 	reason := sprintf("%s.%s: uses context value(s) not in allowlist for project: %s", [wf_name, job_name, concat(", ", illegal_contexts)])
 }
 
+contexts_reserved_by_project_ids(project_id, context_list) = {reason |
+	not utils.to_set(project_id)[data.meta.project_id]
+
+	some wf_name, workflow in input.workflows
+	some job_name, job_info in workflow.jobs[_]
+
+	illegal_contexts := utils.to_set(job_info.context) & utils.to_set(context_list)
+	count(illegal_contexts) > 0
+
+	reason := sprintf("%s.%s: uses context value(s) not in reservelist for project: %s", [wf_name, job_name, concat(", ", illegal_contexts)])
+}
+
 contexts_reserved_by_branches(branch_list, context_list) = {reason |
 	some wf_name, workflow in input.workflows
 	some job_name, job_info in workflow.jobs[_]
