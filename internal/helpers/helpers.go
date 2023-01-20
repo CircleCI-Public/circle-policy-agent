@@ -51,7 +51,7 @@ func init() {
 		if !containsType(types, name) {
 			panic("invalid helper type in rego FS: " + name)
 		}
-		helpers[name] = loadRegoSubdir(path.Join("rego", name))
+		helpers[name] = mustLoadRegoSubdir(path.Join("rego", name))
 	}
 }
 
@@ -61,7 +61,7 @@ func AppendHelpers(mods map[string]*ast.Module, helperType Type) {
 	}
 }
 
-func loadRegoSubdir(root string) map[string]*ast.Module {
+func mustLoadRegoSubdir(root string) map[string]*ast.Module {
 	entries, err := regoFS.ReadDir(root)
 	if err != nil {
 		panic(err)
