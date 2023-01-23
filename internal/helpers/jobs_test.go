@@ -100,7 +100,7 @@ func TestJobsHelper(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			mod := configHelpersMap["circleci_jobs_helper.rego"]
+			mod := helpers["config"]["circleci/rego/config/jobs.rego"]
 
 			var input map[string]interface{}
 			require.NoError(t, json.Unmarshal([]byte(tc.Input), &input))

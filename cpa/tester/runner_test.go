@@ -33,6 +33,7 @@ func TestRunner(t *testing.T) {
 		"policies/common/reason_types",
 		"policies/common/soft_and_hard_fail_together",
 		"policies/helpers",
+		"policies/helpers/contexts",
 		"policies/helpers/jobs",
 		"policies/helpers/orbs",
 		"policies/helpers/orbs/ban_version",
@@ -189,6 +190,125 @@ func TestRunnerResults(t *testing.T) {
 			},
 			{
 			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_allowlist",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_allowlist/invalid_context",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_allowlist/invalid_contexts",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_allowlist/test_multiple_invalid_contexts_in_job",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_allowlist/test_unaffected_project",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_blocked_contexts_list",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_blocked_contexts_list/blocked_context",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_blocked_contexts_list/invalid_contexts",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_blocked_contexts_list/unaffected_project",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_branch_reservelist",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_branch_reservelist/invalid_branch",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_branch_reservelist/unrestricted_by_branch",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_reservelist",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_reservelist/invalid_context",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_reservelist/invalid_contexts",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_reservelist/test_multiple_invalid_contexts_in_job",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/contexts",
+			  "Name": "test_reservelist/test_unreserved_contexts",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
 			  "Group": "policies/helpers/jobs",
 			  "Name": "test_require_jobs",
 			  "Elapsed": "0s",
@@ -230,26 +350,26 @@ func TestRunnerResults(t *testing.T) {
 			  "ElapsedMS": 0
 			},
 			{
-				"Passed": true,
-				"Group": "policies/helpers/orbs/ban_version",
-				"Name": "test_ban_orbs_version",
-				"Elapsed": "0s",
-				"ElapsedMS": 0
-			  },
-			  {
-				"Passed": true,
-				"Group": "policies/helpers/orbs/ban_version",
-				"Name": "test_ban_orbs_version/exact_match",
-				"Elapsed": "0s",
-				"ElapsedMS": 0
-			  },
-			  {
-				"Passed": true,
-				"Group": "policies/helpers/orbs/ban_version",
-				"Name": "test_ban_orbs_version/wrong_version",
-				"Elapsed": "0s",
-				"ElapsedMS": 0
-			  },
+			  "Passed": true,
+			  "Group": "policies/helpers/orbs/ban_version",
+			  "Name": "test_ban_orbs_version",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/orbs/ban_version",
+			  "Name": "test_ban_orbs_version/exact_match",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/helpers/orbs/ban_version",
+			  "Name": "test_ban_orbs_version/wrong_version",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
 			{
 			  "Passed": true,
 			  "Group": "policies/helpers/orbs/require_version",
