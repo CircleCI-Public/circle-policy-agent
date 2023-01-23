@@ -49,7 +49,7 @@ func TestRegoParsing(t *testing.T) {
 			`,
 			LintRules: []LintRule{AllowedPackages("good", "righteous")},
 			//nolint
-			Error: errors.New(`failed policy linting: lint error: "test.rego": invalid package name: expected one of packages [good, righteous] but got "package evil"`),
+			Error: errors.New(`failed policy linting: lint error: "test": invalid package name: expected one of packages [good, righteous] but got "package evil"`),
 		},
 		{
 			Name: "passes package name linting",
