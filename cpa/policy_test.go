@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/maps"
 )
 
 func TestParsePolicy(t *testing.T) {
@@ -66,7 +68,7 @@ func TestParsePolicy(t *testing.T) {
 				`,
 			},
 			//nolint
-			Error: errors.New(`failed policy linting: lint error: "bad.rego": invalid package name: expected one of packages [org] but got "package bad"`),
+			Error: errors.New(`failed policy linting: lint error: "test_1": invalid package name: expected one of packages [org] but got "package bad"`),
 		},
 		{
 			Name: "Successfully parses policy bundle when helper functions are added to the rego",
@@ -361,14 +363,14 @@ func TestMeta(t *testing.T) {
 
 func TestGetSource(t *testing.T) {
 	testcases := []struct {
-		Name   string
-		Bundle map[string]string
-		Source map[string]string
+		Name       string
+		Bundle     map[string]string
+		KeyMapping map[string]string
 	}{
 		{
-			Name:   "empty source",
-			Bundle: map[string]string{},
-			Source: map[string]string{},
+			Name:       "empty source",
+			Bundle:     map[string]string{},
+			KeyMapping: map[string]string{},
 		},
 		{
 			Name: "gets source",
@@ -379,8 +381,8 @@ func TestGetSource(t *testing.T) {
 					# some comment
 				`,
 			},
-			Source: map[string]string{
-				"name_test": "package org\n\npolicy_name[\"name_test\"] { true }",
+			KeyMapping: map[string]string{
+				"name_test": "test.rego",
 			},
 		},
 		{
@@ -395,23 +397,9 @@ func TestGetSource(t *testing.T) {
 					policy_name["test2"]
 				`,
 			},
-			Source: map[string]string{
-				"test1": "package org\n\npolicy_name[\"test1\"] { true }",
-				"test2": "package org\n\npolicy_name[\"test2\"] { true }",
-			},
-		},
-		{
-			Name: "bundle links helpers",
-			Bundle: map[string]string{
-				"test.rego": `
-					package org
-					import data.circleci.config
-					policy_name["orbs"]
-					versions = config.require_orbs_version([])
-				`,
-			},
-			Source: map[string]string{
-				"orbs": "package org\n\nimport data.circleci.config\n\npolicy_name[\"orbs\"] { true }\nversions = config.require_orbs_version([]) { true }",
+			KeyMapping: map[string]string{
+				"test1": "test1.rego",
+				"test2": "test2.rego",
 			},
 		},
 	}
@@ -419,10 +407,48 @@ func TestGetSource(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.Name, func(t *testing.T) {
 			policy, err := ParseBundle(tc.Bundle)
+			sourceKeys := maps.Keys(policy.Source())
+			modulesKeys := maps.Keys(policy.Modules())
+			sort.Strings(sourceKeys)
+			sort.Strings(modulesKeys)
+
 			require.NoError(t, err)
-			require.EqualValues(t, tc.Source, policy.Source())
+			require.Equal(t, sourceKeys, modulesKeys)
+			require.Equal(t, len(tc.Bundle), len(policy.Source()))
+			for policyName, content := range policy.Source() {
+				require.Equal(t, content, tc.Bundle[tc.KeyMapping[policyName]])
+			}
 		})
 	}
+}
+
+func TestBundleLinksHelpers(t *testing.T) {
+	policyName := "orbs"
+	content := fmt.Sprintf(`
+		package org
+		import data.circleci.config
+		policy_name["%s"]
+		versions = config.require_orbs_version([])
+		`, policyName,
+	)
+
+	policy, err := parseBundle(map[string]string{"test.rego": content})
+
+	require.NoError(t, err)
+	require.EqualValues(t, content, policy.Source()[policyName])
+
+	expectedModules := []string{
+		"circleci/rego/config/contexts.rego",
+		"circleci/rego/config/jobs.rego",
+		"circleci/rego/config/orbs.rego",
+		"circleci/rego/config/runner.rego",
+		"circleci/rego/utils/utils.rego",
+		"orbs",
+	}
+	modules := maps.Keys(policy.Modules())
+	sort.Strings(modules)
+
+	require.EqualValues(t, expectedModules, modules)
 }
 
 func TestHttpBlocked(t *testing.T) {

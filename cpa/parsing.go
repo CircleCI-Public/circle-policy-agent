@@ -100,9 +100,9 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 			continue
 		}
 
-		moduleMap[file] = mod
+		moduleMap[name] = mod
+		source[name] = rego
 		nameCount[name]++
-		source[name] = mod.String()
 	}
 
 	if len(multiErr) > 0 {
@@ -119,10 +119,10 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 		return nil, fmt.Errorf("failed to parse bundle: %w", multiErr)
 	}
 
-	for filename, mod := range moduleMap {
+	for policyName, mod := range moduleMap {
 		for _, rule := range rules {
 			if err := rule(mod); err != nil {
-				multiErr = append(multiErr, fmt.Errorf("lint error: %q: %w", filename, err))
+				multiErr = append(multiErr, fmt.Errorf("lint error: %q: %w", policyName, err))
 			}
 		}
 	}
