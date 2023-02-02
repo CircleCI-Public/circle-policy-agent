@@ -428,7 +428,7 @@ func TestBundleLinksHelpers(t *testing.T) {
 		package org
 		import data.circleci.config
 		policy_name["%s"]
-		versions = config.require_orbs_version([])
+		orbs = config.orbs
 		`, policyName,
 	)
 
@@ -439,7 +439,6 @@ func TestBundleLinksHelpers(t *testing.T) {
 
 	expectedModules := []string{
 		"circleci/rego/config/contexts.rego",
-		"circleci/rego/config/jobs.rego",
 		"circleci/rego/config/orbs.rego",
 		"circleci/rego/config/runner.rego",
 		"circleci/rego/utils/utils.rego",

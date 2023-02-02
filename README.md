@@ -62,10 +62,6 @@ this code, please include `import data.circleci.config` in your Rego file.
 
 Currently supported helpers:
 
-- [jobs](./internal/helpers/docs/jobs.md#jobs)
-  - [require_jobs](./internal/helpers/docs/jobs.md#require_jobs)
 - [orbs](./internal/helpers/docs/orbs.MD#orbs)
-  - [require_orbs](./internal/helpers/docs/orbs.MD#require_orbs)
-  - [require_orbs_version](./internal/helpers/docs/orbs.MD#require_orbs_version)
   - [ban_orbs](./internal/helpers/docs/orbs.MD#ban_orbs)
   - [ban_orbs_version](./internal/helpers/docs/orbs.MD#ban_orbs_version)
