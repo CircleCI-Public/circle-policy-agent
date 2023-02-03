@@ -34,10 +34,8 @@ func TestRunner(t *testing.T) {
 		"policies/common/soft_and_hard_fail_together",
 		"policies/helpers",
 		"policies/helpers/contexts",
-		"policies/helpers/jobs",
 		"policies/helpers/orbs",
 		"policies/helpers/orbs/ban_version",
-		"policies/helpers/orbs/require_version",
 		"policies/helpers/runner",
 		"policies/multifile",
 		"policies/multifile/sub0",
@@ -83,20 +81,6 @@ func TestRunnerResults(t *testing.T) {
 
 	require.JSONEq(t,
 		`[
-			{
-			  "Passed": true,
-			  "Group": "\u003copa.tests\u003e",
-			  "Name": "data.org.test_get_job_name_object",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "\u003copa.tests\u003e",
-			  "Name": "data.org.test_get_job_name_string",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
 			{
 			  "Passed": true,
 			  "Group": "policies",
@@ -309,27 +293,6 @@ func TestRunnerResults(t *testing.T) {
 			},
 			{
 			  "Passed": true,
-			  "Group": "policies/helpers/jobs",
-			  "Name": "test_require_jobs",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/jobs",
-			  "Name": "test_require_jobs/jobs_as_objects",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/jobs",
-			  "Name": "test_require_jobs/missing_jobs",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
 			  "Group": "policies/helpers/orbs",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0,
@@ -367,41 +330,6 @@ func TestRunnerResults(t *testing.T) {
 			  "Passed": true,
 			  "Group": "policies/helpers/orbs/ban_version",
 			  "Name": "test_ban_orbs_version/wrong_version",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/orbs/require_version",
-			  "Name": "test_require_orbs",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/orbs/require_version",
-			  "Name": "test_require_orbs/orb_absent",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/orbs/require_version",
-			  "Name": "test_require_orbs_version",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/orbs/require_version",
-			  "Name": "test_require_orbs_version/absent",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/orbs/require_version",
-			  "Name": "test_require_orbs_version/wrong_version",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
 			},
