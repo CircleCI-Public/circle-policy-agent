@@ -25,6 +25,7 @@ test_base_policy:
             status: HARD_FAIL
             enabled_rules:
               - name_is_bob
+            soft_failures: null
             hard_failures:
               - rule: name_is_bob
                 reason: name must be bob!
