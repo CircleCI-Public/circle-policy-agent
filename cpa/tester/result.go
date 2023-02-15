@@ -2,6 +2,7 @@ package tester
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,8 @@ import (
 
 	"github.com/CircleCI-Public/circle-policy-agent/cpa"
 	"github.com/CircleCI-Public/circle-policy-agent/internal"
+	"github.com/CircleCI-Public/circle-policy-agent/internal/junit"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -160,6 +163,107 @@ func (jrh jsonResultHandler) HandleResults(c <-chan Result) bool {
 
 	_ = enc.Encode(results)
 	return ok
+}
+
+type junitResultHandler struct {
+	w io.Writer
+}
+
+func (rh junitResultHandler) HandleResults(c <-chan Result) bool {
+	var (
+		root             = junit.JUnitTestSuites{Name: "root"}
+		currentSuite     junit.JUnitTestSuite
+		currentSuiteTime time.Duration
+		failed           int
+		passed           int
+		errorGroups      int
+		totalTime        time.Duration
+	)
+
+	finalizeCurrentSuite := func() {
+		currentSuite.Time = fmt.Sprintf("%.3f", currentSuiteTime.Seconds())
+		currentSuiteTime = 0
+		root.Suites = append(root.Suites, currentSuite)
+	}
+
+	for result := range c {
+		totalTime += result.Elapsed
+		currentSuiteTime += result.Elapsed
+
+		if result.Group != currentSuite.Name {
+			if currentSuite.Name != "" {
+				finalizeCurrentSuite()
+			}
+			currentSuite = junit.JUnitTestSuite{Name: result.Group}
+		}
+
+		// Handle an Error Group
+		if result.Name == "" {
+			switch {
+			case errors.Is(result.Err, cpa.ErrNoPolicies):
+				currentSuite.Properties = []junit.JUnitProperty{{Name: "skipped", Value: "no policies"}}
+			case errors.Is(result.Err, ErrNoTests):
+				currentSuite.Properties = []junit.JUnitProperty{{Name: "skipped", Value: "no tests"}}
+			default:
+				errorGroups++
+			}
+			finalizeCurrentSuite()
+			currentSuite = junit.JUnitTestSuite{}
+			continue
+		}
+
+		currentSuiteTime += result.Elapsed
+		currentSuite.Tests++
+		if result.Passed {
+			passed++
+			currentSuite.TestCases = append(currentSuite.TestCases, junit.JUnitTestCase{
+				Classname: result.Group,
+				Name:      result.Name,
+				Time:      fmt.Sprintf("%.3f", result.Elapsed.Seconds()),
+			})
+		} else {
+			failed++
+			currentSuite.Failures++
+			currentSuite.TestCases = append(currentSuite.TestCases, junit.JUnitTestCase{
+				Classname: result.Group,
+				Name:      result.Name,
+				Time:      fmt.Sprintf("%.3f", result.Elapsed.Seconds()),
+				Failure: &junit.JUnitFailure{
+					Message: "failed",
+					Contents: func() string {
+						if result.Err == nil {
+							return ""
+						}
+						return result.Err.Error()
+					}(),
+				},
+			})
+		}
+	}
+
+	// Print the last group status after the result loop ends
+	if currentSuite.Name != "" {
+		finalizeCurrentSuite()
+	}
+
+	root.Time = fmt.Sprintf("%.3f", totalTime.Seconds())
+	root.Tests = passed + failed
+	root.Failures = failed
+	root.Errors = errorGroups
+
+	encoder := xml.NewEncoder(rh.w)
+	encoder.Indent("", "\t")
+
+	_, _ = io.WriteString(rh.w, xml.Header)
+	_ = encoder.Encode(root)
+
+	return failed == 0 && errorGroups == 0
+}
+
+func MakeJUnitResultHandler(opts ResultHandlerOptions) ResultHandler {
+	return junitResultHandler{
+		w: opts.Dst,
+	}
 }
 
 type ResultHandlerOptions struct {
