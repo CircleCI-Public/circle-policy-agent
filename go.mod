@@ -3,7 +3,7 @@ module github.com/CircleCI-Public/circle-policy-agent
 go 1.18
 
 require (
-	github.com/open-policy-agent/opa v0.48.0
+	github.com/open-policy-agent/opa v0.49.0
 	github.com/stretchr/testify v1.8.1
 	github.com/yazgazan/jaydiff v0.3.1
 	golang.org/x/exp v0.0.0-20230118134722-a68e582fa157
@@ -23,7 +23,6 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mb0/diff v0.0.0-20131118162322-d8d9a906c24d // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/tchap/go-patricia/v2 v2.3.1 // indirect
