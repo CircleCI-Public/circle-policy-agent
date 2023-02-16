@@ -33,9 +33,10 @@ type NamedTest struct {
 }
 
 type ParentTestContext struct {
-	Name  string
-	Input any
-	Meta  any
+	Name     string
+	Input    any
+	Meta     any
+	Decision any
 }
 
 func loadTests(path string) (tests map[string]*Test, err error) {
