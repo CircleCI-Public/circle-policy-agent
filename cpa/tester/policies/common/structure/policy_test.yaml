@@ -3,7 +3,7 @@ test_structure:
     reason: failure reason
   cases:
     with_meta:
-      meta:
+      meta: 
         project_id: A
       decision:
         status: SOFT_FAIL

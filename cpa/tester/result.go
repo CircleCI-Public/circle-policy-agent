@@ -2,6 +2,7 @@ package tester
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,8 @@ import (
 
 	"github.com/CircleCI-Public/circle-policy-agent/cpa"
 	"github.com/CircleCI-Public/circle-policy-agent/internal"
+	"github.com/CircleCI-Public/circle-policy-agent/internal/junit"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -54,13 +57,13 @@ func (r Result) MarshalJSON() ([]byte, error) {
 type ResultHandler interface {
 	HandleResults(c <-chan Result) (success bool)
 }
-type resultHandler struct {
+type StandardResultHandler struct {
 	table   internal.TableWriter
 	verbose bool
 	debug   bool
 }
 
-func (rh resultHandler) HandleResults(c <-chan Result) bool {
+func (rh StandardResultHandler) HandleResults(c <-chan Result) bool {
 	type Group struct {
 		Name    string
 		Status  string
@@ -134,12 +137,12 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 	return failed == 0 && errorGroups == 0
 }
 
-type jsonResultHandler struct {
+type JSONResultHandler struct {
 	w     io.Writer
 	debug bool
 }
 
-func (jrh jsonResultHandler) HandleResults(c <-chan Result) bool {
+func (jrh JSONResultHandler) HandleResults(c <-chan Result) bool {
 	var (
 		ok      = true
 		results = []Result{}
@@ -162,29 +165,130 @@ func (jrh jsonResultHandler) HandleResults(c <-chan Result) bool {
 	return ok
 }
 
+type JUnitResultHandler struct {
+	w io.Writer
+}
+
+func (rh JUnitResultHandler) HandleResults(c <-chan Result) bool {
+	var (
+		root             = junit.JUnitTestSuites{Name: "root"}
+		currentSuite     junit.JUnitTestSuite
+		currentSuiteTime time.Duration
+		failed           int
+		passed           int
+		errorGroups      int
+		totalTime        time.Duration
+	)
+
+	finalizeCurrentSuite := func() {
+		currentSuite.Time = fmt.Sprintf("%.3f", currentSuiteTime.Seconds())
+		currentSuiteTime = 0
+		root.Suites = append(root.Suites, currentSuite)
+	}
+
+	for result := range c {
+		totalTime += result.Elapsed
+		currentSuiteTime += result.Elapsed
+
+		if result.Group != currentSuite.Name {
+			if currentSuite.Name != "" {
+				finalizeCurrentSuite()
+			}
+			currentSuite = junit.JUnitTestSuite{Name: result.Group}
+		}
+
+		// Handle an Error Group
+		if result.Name == "" {
+			switch {
+			case errors.Is(result.Err, cpa.ErrNoPolicies):
+				currentSuite.Properties = []junit.JUnitProperty{{Name: "skipped", Value: "no policies"}}
+			case errors.Is(result.Err, ErrNoTests):
+				currentSuite.Properties = []junit.JUnitProperty{{Name: "skipped", Value: "no tests"}}
+			default:
+				errorGroups++
+			}
+			finalizeCurrentSuite()
+			currentSuite = junit.JUnitTestSuite{}
+			continue
+		}
+
+		currentSuiteTime += result.Elapsed
+		currentSuite.Tests++
+		if result.Passed {
+			passed++
+			currentSuite.TestCases = append(currentSuite.TestCases, junit.JUnitTestCase{
+				Classname: result.Group,
+				Name:      result.Name,
+				Time:      fmt.Sprintf("%.3f", result.Elapsed.Seconds()),
+			})
+		} else {
+			failed++
+			currentSuite.Failures++
+			currentSuite.TestCases = append(currentSuite.TestCases, junit.JUnitTestCase{
+				Classname: result.Group,
+				Name:      result.Name,
+				Time:      fmt.Sprintf("%.3f", result.Elapsed.Seconds()),
+				Failure: &junit.JUnitFailure{
+					Message: "failed",
+					Contents: func() string {
+						if result.Err == nil {
+							return ""
+						}
+						return result.Err.Error()
+					}(),
+				},
+			})
+		}
+	}
+
+	// Print the last group status after the result loop ends
+	if currentSuite.Name != "" {
+		finalizeCurrentSuite()
+	}
+
+	root.Time = fmt.Sprintf("%.3f", totalTime.Seconds())
+	root.Tests = passed + failed
+	root.Failures = failed
+	root.Errors = errorGroups
+
+	encoder := xml.NewEncoder(rh.w)
+	encoder.Indent("", "\t")
+
+	_, _ = io.WriteString(rh.w, xml.Header)
+	_ = encoder.Encode(root)
+
+	return failed == 0 && errorGroups == 0
+}
+
+func MakeJUnitResultHandler(opts ResultHandlerOptions) JUnitResultHandler {
+	return JUnitResultHandler{
+		w: opts.Dst,
+	}
+}
+
 type ResultHandlerOptions struct {
 	Verbose bool
 	Debug   bool
 	Dst     io.Writer
 }
 
-func MakeDefaultResultHandler(opts ResultHandlerOptions) ResultHandler {
+func MakeDefaultResultHandler(opts ResultHandlerOptions) StandardResultHandler {
 	if opts.Dst == nil {
 		opts.Dst = os.Stderr
 	}
 	if opts.Debug {
 		opts.Verbose = true
 	}
-	return resultHandler{
+	return StandardResultHandler{
 		table:   internal.MakeTableWriter(opts.Dst),
 		verbose: opts.Verbose,
 		debug:   opts.Debug,
 	}
 }
 
-func MakeJSONResultHandler(opts ResultHandlerOptions) ResultHandler {
+func MakeJSONResultHandler(opts ResultHandlerOptions) JSONResultHandler {
 	if opts.Dst == nil {
 		opts.Dst = os.Stderr
 	}
-	return jsonResultHandler{opts.Dst, opts.Debug}
+	return JSONResultHandler{opts.Dst, opts.Debug}
 }
