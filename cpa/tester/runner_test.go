@@ -37,6 +37,7 @@ func TestRunner(t *testing.T) {
 		"policies/helpers/orbs",
 		"policies/helpers/orbs/ban_version",
 		"policies/helpers/runner",
+		"policies/helpers/utils",
 		"policies/multifile",
 		"policies/multifile/sub0",
 		"policies/multifile/sub1",
