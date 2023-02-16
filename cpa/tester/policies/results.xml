@@ -1,8 +1,9 @@
-<testsuites name="root" tests="46" failures="0" errors="0" time="0">
-	<testsuite tests="8" failures="0" time="0" name="&lt;opa.tests&gt;" timestamp="">
+<testsuites name="root" tests="47" failures="0" errors="0" time="0">
+	<testsuite tests="9" failures="0" time="0" name="&lt;opa.tests&gt;" timestamp="">
 		<properties></properties>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_array_scalar" time="0"></testcase>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_array_array" time="0"></testcase>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_array_set" time="0"></testcase>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_set_scalar" time="0"></testcase>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_set_array" time="0"></testcase>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_set_set" time="0"></testcase>

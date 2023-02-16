@@ -16,6 +16,13 @@
   {
     "Passed": true,
     "Group": "\u003copa.tests\u003e",
+    "Name": "data.org.test_to_array_set",
+    "Elapsed": "0s",
+    "ElapsedMS": 0
+  },
+  {
+    "Passed": true,
+    "Group": "\u003copa.tests\u003e",
     "Name": "data.org.test_to_set_scalar",
     "Elapsed": "0s",
     "ElapsedMS": 0

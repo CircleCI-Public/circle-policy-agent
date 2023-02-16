@@ -6,6 +6,7 @@ policy_name["utils_tests"]
 
 test_to_array_scalar = utils.to_array(1) == [1]
 test_to_array_array = utils.to_array([1]) == [1]
+test_to_array_set = utils.to_array({1}) == [{1}]
 
 test_to_set_scalar = utils.to_set(1) == {1}
 test_to_set_array = utils.to_set([1,2,3]) == {1,2,3}
