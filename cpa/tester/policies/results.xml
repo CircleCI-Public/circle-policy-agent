@@ -1,4 +1,15 @@
-<testsuites name="root" tests="38" failures="0" errors="0" time="0">
+<testsuites name="root" tests="46" failures="0" errors="0" time="0">
+	<testsuite tests="8" failures="0" time="0" name="&lt;opa.tests&gt;" timestamp="">
+		<properties></properties>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_array_scalar" time="0"></testcase>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_array_array" time="0"></testcase>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_set_scalar" time="0"></testcase>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_set_array" time="0"></testcase>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_set_set" time="0"></testcase>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_get_element_name_string" time="0"></testcase>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_get_element_name_object" time="0"></testcase>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_get_element_name_invalid_object" time="0"></testcase>
+	</testsuite>
 	<testsuite tests="0" failures="0" time="0" name="policies" timestamp="">
 		<properties>
 			<property name="skipped" value="no tests"></property>
@@ -82,6 +93,11 @@
 		<testcase classname="policies/helpers/runner" name="test_runner_helper" time="0"></testcase>
 		<testcase classname="policies/helpers/runner" name="test_runner_helper/project_medium" time="0"></testcase>
 		<testcase classname="policies/helpers/runner" name="test_runner_helper/project_small" time="0"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0" name="policies/helpers/utils" timestamp="">
+		<properties>
+			<property name="skipped" value="no tests"></property>
+		</properties>
 	</testsuite>
 	<testsuite tests="1" failures="0" time="0" name="policies/multifile" timestamp="">
 		<properties></properties>
