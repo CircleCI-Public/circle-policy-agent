@@ -13,12 +13,9 @@ test_structure:
             reason: failure reason
       cases:
         good:
-          meta: 
+          meta:
             project_id: Z
           decision:
             status: PASS
             enabled_rules: null
             soft_failures: null
-
-
-         
