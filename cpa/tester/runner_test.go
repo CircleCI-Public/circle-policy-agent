@@ -2,12 +2,23 @@ package tester
 
 import (
 	"bytes"
-	"fmt"
+	"encoding/xml"
 	"os"
 	"regexp"
 	"testing"
 
+	_ "embed"
+
+	"github.com/CircleCI-Public/circle-policy-agent/internal/junit"
 	"github.com/stretchr/testify/require"
+)
+
+var (
+	//go:embed policies/results.json
+	expectedJSON string
+
+	//go:embed policies/results.xml
+	expectedXML string
 )
 
 func TestRunner(t *testing.T) {
@@ -53,356 +64,74 @@ func TestRunner(t *testing.T) {
 }
 
 func TestRunnerResults(t *testing.T) {
-	options := RunnerOptions{
-		Path: "./policies/...",
-		Include: func() *regexp.Regexp {
-			run := os.Getenv("RUN")
-			if run == "" {
-				return nil
-			}
-			return regexp.MustCompile(run)
-		}(),
-	}
-
-	runner, err := NewRunner(options)
-	require.NoError(t, err)
-
-	sanitizedResults := make(chan Result)
-	go func() {
-		for r := range runner.Run() {
-			r.Elapsed = 0 // We cannot statically assert the elapsed time so we zero it out
-			sanitizedResults <- r
+	t.Run("json", func(t *testing.T) {
+		options := RunnerOptions{
+			Path: "./policies/...",
+			Include: func() *regexp.Regexp {
+				run := os.Getenv("RUN")
+				if run == "" {
+					return nil
+				}
+				return regexp.MustCompile(run)
+			}(),
 		}
-		close(sanitizedResults)
-	}()
 
-	buf := new(bytes.Buffer)
-	opts := ResultHandlerOptions{Dst: buf}
+		runner, err := NewRunner(options)
+		require.NoError(t, err)
 
-	MakeJSONResultHandler(opts).HandleResults(sanitizedResults)
-
-	fmt.Println(buf.String())
-
-	require.JSONEq(t,
-		`[
-			{
-			  "Passed": true,
-			  "Group": "policies",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0,
-			  "Err": "no tests"
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0,
-			  "Err": "no tests"
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/base",
-			  "Name": "test_base_policy",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/base",
-			  "Name": "test_base_policy/not_bob",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/base",
-			  "Name": "test_base_policy/not_bob/hard_fail",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/error",
-			  "Name": "test_error",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/no_enabled_rules",
-			  "Name": "test_no_enabled_rules",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/reason_types",
-			  "Name": "test_reason_types",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/reason_types",
-			  "Name": "test_reason_types/array",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/reason_types",
-			  "Name": "test_reason_types/map",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/reason_types",
-			  "Name": "test_reason_types/string",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/soft_and_hard_fail_together",
-			  "Name": "test_soft_and_hard_fail_together",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/structure",
-			  "Name": "test_structure/with_meta",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/common/structure",
-			  "Name": "test_structure/with_meta/good",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0,
-			  "Err": "no tests"
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_allowlist",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_allowlist/invalid_context",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_allowlist/invalid_contexts",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_allowlist/test_multiple_invalid_contexts_in_job",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_allowlist/test_unaffected_project",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_blocked_contexts_list",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_blocked_contexts_list/blocked_context",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_blocked_contexts_list/invalid_contexts",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_blocked_contexts_list/unaffected_project",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_branch_reservelist",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_branch_reservelist/invalid_branch",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_branch_reservelist/unrestricted_by_branch",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_reservelist",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_reservelist/invalid_context",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_reservelist/invalid_contexts",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_reservelist/test_multiple_invalid_contexts_in_job",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/contexts",
-			  "Name": "test_reservelist/test_unreserved_contexts",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/orbs",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0,
-			  "Err": "no tests"
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/orbs/ban_version",
-			  "Name": "test_ban_orbs",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/orbs/ban_version",
-			  "Name": "test_ban_orbs/orb_present",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/orbs/ban_version",
-			  "Name": "test_ban_orbs_version",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/orbs/ban_version",
-			  "Name": "test_ban_orbs_version/exact_match",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/orbs/ban_version",
-			  "Name": "test_ban_orbs_version/wrong_version",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/runner",
-			  "Name": "test_runner_helper",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/runner",
-			  "Name": "test_runner_helper/project_medium",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/helpers/runner",
-			  "Name": "test_runner_helper/project_small",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/multifile",
-			  "Name": "test_multifile_policy",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/multifile/sub0",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0,
-			  "Err": "no tests"
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/multifile/sub1",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0,
-			  "Err": "no tests"
-			},
-			{
-			  "Passed": true,
-			  "Group": "policies/multifile/sub1/sub1_0",
-			  "Elapsed": "0s",
-			  "ElapsedMS": 0,
-			  "Err": "no tests"
+		sanitizedResults := make(chan Result)
+		go func() {
+			for r := range runner.Run() {
+				r.Elapsed = 0 // We cannot statically assert the elapsed time so we zero it out
+				sanitizedResults <- r
 			}
-		  ]`,
-		buf.String(),
-	)
+			close(sanitizedResults)
+		}()
+
+		buf := new(bytes.Buffer)
+		opts := ResultHandlerOptions{Dst: buf}
+
+		MakeJSONResultHandler(opts).HandleResults(sanitizedResults)
+
+		require.JSONEq(t, expectedJSON, buf.String())
+	})
+
+	t.Run("xml", func(t *testing.T) {
+		options := RunnerOptions{
+			Path: "./policies/...",
+			Include: func() *regexp.Regexp {
+				run := os.Getenv("RUN")
+				if run == "" {
+					return nil
+				}
+				return regexp.MustCompile(run)
+			}(),
+		}
+
+		runner, err := NewRunner(options)
+		require.NoError(t, err)
+
+		buf := new(bytes.Buffer)
+		opts := ResultHandlerOptions{Dst: buf}
+
+		MakeJUnitResultHandler(opts).HandleResults(runner.Run())
+
+		suites := junit.JUnitTestSuites{}
+		require.NoError(t, xml.Unmarshal(buf.Bytes(), &suites))
+
+		suites.Time = "0"
+		for i := range suites.Suites {
+			suites.Suites[i].Time = "0"
+			for j := range suites.Suites[i].TestCases {
+				suites.Suites[i].TestCases[j].Time = "0"
+			}
+		}
+
+		sanitizedXML, err := xml.MarshalIndent(suites, "", "\t")
+		require.NoError(t, err)
+
+		require.Equal(t, expectedXML, string(sanitizedXML))
+	})
 }
 
 func TestFailedPolicies(t *testing.T) {

@@ -6,13 +6,13 @@ import (
 
 // JUnitTestSuites is a collection of JUnit test suites.
 type JUnitTestSuites struct {
-	XMLName  xml.Name `xml:"testsuites"`
-	Name     string   `xml:"name,attr,omitempty"`
-	Tests    int      `xml:"tests,attr"`
-	Failures int      `xml:"failures,attr"`
-	Errors   int      `xml:"errors,attr"`
-	Time     string   `xml:"time,attr"`
-	Suites   []JUnitTestSuite
+	XMLName  xml.Name         `xml:"testsuites"`
+	Name     string           `xml:"name,attr,omitempty"`
+	Tests    int              `xml:"tests,attr"`
+	Failures int              `xml:"failures,attr"`
+	Errors   int              `xml:"errors,attr"`
+	Time     string           `xml:"time,attr"`
+	Suites   []JUnitTestSuite `xml:"testsuite"`
 }
 
 // JUnitTestSuite is a single JUnit test suite which may contain many
@@ -24,8 +24,8 @@ type JUnitTestSuite struct {
 	Time       string          `xml:"time,attr"`
 	Name       string          `xml:"name,attr"`
 	Properties []JUnitProperty `xml:"properties>property,omitempty"`
-	TestCases  []JUnitTestCase
-	Timestamp  string `xml:"timestamp,attr"`
+	TestCases  []JUnitTestCase `xml:"testcase"`
+	Timestamp  string          `xml:"timestamp,attr"`
 }
 
 // JUnitTestCase is a single test case with its result.
