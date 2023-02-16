@@ -57,13 +57,13 @@ func (r Result) MarshalJSON() ([]byte, error) {
 type ResultHandler interface {
 	HandleResults(c <-chan Result) (success bool)
 }
-type resultHandler struct {
+type StandardResultHandler struct {
 	table   internal.TableWriter
 	verbose bool
 	debug   bool
 }
 
-func (rh resultHandler) HandleResults(c <-chan Result) bool {
+func (rh StandardResultHandler) HandleResults(c <-chan Result) bool {
 	type Group struct {
 		Name    string
 		Status  string
@@ -137,12 +137,12 @@ func (rh resultHandler) HandleResults(c <-chan Result) bool {
 	return failed == 0 && errorGroups == 0
 }
 
-type jsonResultHandler struct {
+type JSONResultHandler struct {
 	w     io.Writer
 	debug bool
 }
 
-func (jrh jsonResultHandler) HandleResults(c <-chan Result) bool {
+func (jrh JSONResultHandler) HandleResults(c <-chan Result) bool {
 	var (
 		ok      = true
 		results = []Result{}
@@ -165,11 +165,11 @@ func (jrh jsonResultHandler) HandleResults(c <-chan Result) bool {
 	return ok
 }
 
-type junitResultHandler struct {
+type JUnitResultHandler struct {
 	w io.Writer
 }
 
-func (rh junitResultHandler) HandleResults(c <-chan Result) bool {
+func (rh JUnitResultHandler) HandleResults(c <-chan Result) bool {
 	var (
 		root             = junit.JUnitTestSuites{Name: "root"}
 		currentSuite     junit.JUnitTestSuite
@@ -260,8 +260,8 @@ func (rh junitResultHandler) HandleResults(c <-chan Result) bool {
 	return failed == 0 && errorGroups == 0
 }
 
-func MakeJUnitResultHandler(opts ResultHandlerOptions) ResultHandler {
-	return junitResultHandler{
+func MakeJUnitResultHandler(opts ResultHandlerOptions) JUnitResultHandler {
+	return JUnitResultHandler{
 		w: opts.Dst,
 	}
 }
@@ -272,23 +272,23 @@ type ResultHandlerOptions struct {
 	Dst     io.Writer
 }
 
-func MakeDefaultResultHandler(opts ResultHandlerOptions) ResultHandler {
+func MakeDefaultResultHandler(opts ResultHandlerOptions) StandardResultHandler {
 	if opts.Dst == nil {
 		opts.Dst = os.Stderr
 	}
 	if opts.Debug {
 		opts.Verbose = true
 	}
-	return resultHandler{
+	return StandardResultHandler{
 		table:   internal.MakeTableWriter(opts.Dst),
 		verbose: opts.Verbose,
 		debug:   opts.Debug,
 	}
 }
 
-func MakeJSONResultHandler(opts ResultHandlerOptions) ResultHandler {
+func MakeJSONResultHandler(opts ResultHandlerOptions) JSONResultHandler {
 	if opts.Dst == nil {
 		opts.Dst = os.Stderr
 	}
-	return jsonResultHandler{opts.Dst, opts.Debug}
+	return JSONResultHandler{opts.Dst, opts.Debug}
 }
