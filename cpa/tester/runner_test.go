@@ -2,7 +2,6 @@ package tester
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"regexp"
 	"testing"
@@ -80,8 +79,6 @@ func TestRunnerResults(t *testing.T) {
 	opts := ResultHandlerOptions{Dst: buf}
 
 	MakeJSONResultHandler(opts).HandleResults(sanitizedResults)
-
-	fmt.Println(buf.String())
 
 	require.JSONEq(t,
 		`[
