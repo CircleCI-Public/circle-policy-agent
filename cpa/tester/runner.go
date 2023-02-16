@@ -176,21 +176,28 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 		return internal.Merge(parent.Meta, t.Meta)
 	}()
 
+	decision := func() any {
+		if t.Decision == nil {
+			return parent.Decision
+		}
+		return internal.Merge(parent.Decision, t.Decision)
+	}()
+
 	name := t.Name
 	if parent.Name != "" {
 		name = parent.Name + "/" + name
 	}
 
-	if runner.include == nil || runner.include.MatchString(name) {
+	if decision != nil && (runner.include == nil || runner.include.MatchString(name)) {
 		eval, _ := policy.Eval(context.Background(), "data", input, cpa.Meta(meta))
 
 		start := time.Now()
-		var decision any = internal.Must(policy.Decide(context.Background(), input, cpa.Meta(meta)))
+		var actualDecision any = internal.Must(policy.Decide(context.Background(), input, cpa.Meta(meta)))
 		elapsed := time.Since(start)
 
-		decision = internal.Must(internal.ToRawInterface(decision))
+		actualDecision = internal.Must(internal.ToRawInterface(actualDecision))
 
-		d := internal.Must(diff.Diff(decision, t.Decision))
+		d := internal.Must(diff.Diff(actualDecision, decision))
 
 		results <- Result{
 			Group:  group,
@@ -211,7 +218,7 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 			Ctx: map[string]any{
 				"input":      input,
 				"meta":       meta,
-				"decision":   decision,
+				"decision":   actualDecision,
 				"evaluation": eval,
 			},
 		}
@@ -219,9 +226,10 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 
 	for _, subtest := range t.NamedCases() {
 		runner.runTest(policy, results, subtest, group, ParentTestContext{
-			Name:  name,
-			Input: input,
-			Meta:  meta,
+			Name:     name,
+			Input:    input,
+			Meta:     meta,
+			Decision: decision,
 		})
 	}
 }

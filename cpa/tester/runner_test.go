@@ -32,6 +32,7 @@ func TestRunner(t *testing.T) {
 		"policies/common/no_enabled_rules",
 		"policies/common/reason_types",
 		"policies/common/soft_and_hard_fail_together",
+		"policies/common/structure",
 		"policies/helpers",
 		"policies/helpers/contexts",
 		"policies/helpers/orbs",
@@ -162,6 +163,20 @@ func TestRunnerResults(t *testing.T) {
 			  "Passed": true,
 			  "Group": "policies/common/soft_and_hard_fail_together",
 			  "Name": "test_soft_and_hard_fail_together",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/common/structure",
+			  "Name": "test_structure/with_meta",
+			  "Elapsed": "0s",
+			  "ElapsedMS": 0
+			},
+			{
+			  "Passed": true,
+			  "Group": "policies/common/structure",
+			  "Name": "test_structure/with_meta/good",
 			  "Elapsed": "0s",
 			  "ElapsedMS": 0
 			},

@@ -1,0 +1,21 @@
+test_structure:
+  input:
+    reason: failure reason
+  cases:
+    with_meta:
+      meta:
+        project_id: A
+      decision:
+        status: SOFT_FAIL
+        enabled_rules: [rule]
+        soft_failures:
+          - rule: rule
+            reason: failure reason
+      cases:
+        good:
+          meta:
+            project_id: Z
+          decision:
+            status: PASS
+            enabled_rules: null
+            soft_failures: null
