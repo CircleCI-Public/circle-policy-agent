@@ -10,3 +10,9 @@ to_set(value) := value if {
 } else := {value}
 
 to_array(value) := value if is_array(value) else := [value]
+
+get_element_name(value) := value if is_string(value) else := key { 
+	is_object(value)
+	count(value) == 1
+	some key, _ in value
+}
