@@ -174,26 +174,21 @@ func (rh JUnitResultHandler) HandleResults(c <-chan Result) bool {
 		root             = junit.JUnitTestSuites{Name: "root"}
 		currentSuite     junit.JUnitTestSuite
 		currentSuiteTime time.Duration
-		failed           int
-		passed           int
-		errorGroups      int
 		totalTime        time.Duration
 	)
 
 	finalizeCurrentSuite := func() {
+		if currentSuite.Name == "" {
+			return
+		}
 		currentSuite.Time = fmt.Sprintf("%.3f", currentSuiteTime.Seconds())
 		currentSuiteTime = 0
 		root.Suites = append(root.Suites, currentSuite)
 	}
 
 	for result := range c {
-		totalTime += result.Elapsed
-		currentSuiteTime += result.Elapsed
-
 		if result.Group != currentSuite.Name {
-			if currentSuite.Name != "" {
-				finalizeCurrentSuite()
-			}
+			finalizeCurrentSuite()
 			currentSuite = junit.JUnitTestSuite{Name: result.Group}
 		}
 
@@ -205,30 +200,33 @@ func (rh JUnitResultHandler) HandleResults(c <-chan Result) bool {
 			case errors.Is(result.Err, ErrNoTests):
 				currentSuite.Properties = []junit.JUnitProperty{{Name: "skipped", Value: "no tests"}}
 			default:
-				errorGroups++
+				root.Errors++
 			}
 			finalizeCurrentSuite()
 			currentSuite = junit.JUnitTestSuite{}
 			continue
 		}
 
+		totalTime += result.Elapsed
 		currentSuiteTime += result.Elapsed
+
 		currentSuite.Tests++
-		if result.Passed {
-			passed++
-			currentSuite.TestCases = append(currentSuite.TestCases, junit.JUnitTestCase{
-				Classname: result.Group,
-				Name:      result.Name,
-				Time:      fmt.Sprintf("%.3f", result.Elapsed.Seconds()),
-			})
-		} else {
-			failed++
+		root.Tests++
+
+		if !result.Passed {
+			root.Failures++
 			currentSuite.Failures++
-			currentSuite.TestCases = append(currentSuite.TestCases, junit.JUnitTestCase{
-				Classname: result.Group,
-				Name:      result.Name,
-				Time:      fmt.Sprintf("%.3f", result.Elapsed.Seconds()),
-				Failure: &junit.JUnitFailure{
+		}
+
+		currentSuite.TestCases = append(currentSuite.TestCases, junit.JUnitTestCase{
+			Classname: result.Group,
+			Name:      result.Name,
+			Time:      fmt.Sprintf("%.3f", result.Elapsed.Seconds()),
+			Failure: func() *junit.JUnitFailure {
+				if result.Passed {
+					return nil
+				}
+				return &junit.JUnitFailure{
 					Message: "failed",
 					Contents: func() string {
 						if result.Err == nil {
@@ -236,28 +234,24 @@ func (rh JUnitResultHandler) HandleResults(c <-chan Result) bool {
 						}
 						return result.Err.Error()
 					}(),
-				},
-			})
-		}
+				}
+			}(),
+		})
 	}
 
 	// Print the last group status after the result loop ends
-	if currentSuite.Name != "" {
-		finalizeCurrentSuite()
-	}
+	finalizeCurrentSuite()
 
 	root.Time = fmt.Sprintf("%.3f", totalTime.Seconds())
-	root.Tests = passed + failed
-	root.Failures = failed
-	root.Errors = errorGroups
 
 	encoder := xml.NewEncoder(rh.w)
 	encoder.Indent("", "\t")
 
 	_, _ = io.WriteString(rh.w, xml.Header)
 	_ = encoder.Encode(root)
+	_, _ = io.WriteString(rh.w, "\n")
 
-	return failed == 0 && errorGroups == 0
+	return root.Failures+root.Errors == 0
 }
 
 func MakeJUnitResultHandler(opts ResultHandlerOptions) JUnitResultHandler {
