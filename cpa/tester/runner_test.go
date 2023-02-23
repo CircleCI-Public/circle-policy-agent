@@ -40,6 +40,7 @@ func TestRunner(t *testing.T) {
 		"policies",
 		"policies/common",
 		"policies/common/base",
+		"policies/common/enable_hard",
 		"policies/common/error",
 		"policies/common/no_enabled_rules",
 		"policies/common/reason_types",

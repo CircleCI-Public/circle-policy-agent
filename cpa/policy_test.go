@@ -497,3 +497,28 @@ func TestPolicyRuntimeError(t *testing.T) {
 		decision.Reason,
 	)
 }
+
+func TestEnableHard(t *testing.T) {
+	policy, err := ParseBundle(map[string]string{
+		"policy.rego": `
+			package org
+			policy_name["policy"]
+			some_rule = "my rule"
+			enable_hard["some_rule"]
+		`,
+	})
+	require.NoError(t, err)
+
+	v := []Violation{
+		{
+			Rule:   "some_rule",
+			Reason: "my rule",
+		},
+	}
+
+	decision, err := policy.Decide(context.Background(), nil)
+	require.NoError(t, err)
+	require.Equal(t, StatusHardFail, decision.Status)
+	require.Contains(t, "some_rule", decision.Reason)
+	require.Equal(t, v, decision.HardFailures)
+}

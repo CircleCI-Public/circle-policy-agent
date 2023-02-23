@@ -99,6 +99,13 @@
   },
   {
     "Passed": true,
+    "Group": "policies/common/enable_hard",
+    "Name": "test_enable_hard",
+    "Elapsed": "0s",
+    "ElapsedMS": 0
+  },
+  {
+    "Passed": true,
     "Group": "policies/common/error",
     "Name": "test_error",
     "Elapsed": "0s",

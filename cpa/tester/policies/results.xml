@@ -1,4 +1,4 @@
-<testsuites name="root" tests="47" failures="0" errors="0" time="0">
+<testsuites name="root" tests="48" failures="0" errors="0" time="0">
 	<testsuite tests="9" failures="0" time="0" name="&lt;opa.tests&gt;" timestamp="">
 		<properties></properties>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_array_scalar" time="0"></testcase>
@@ -26,6 +26,10 @@
 		<testcase classname="policies/common/base" name="test_base_policy" time="0"></testcase>
 		<testcase classname="policies/common/base" name="test_base_policy/not_bob" time="0"></testcase>
 		<testcase classname="policies/common/base" name="test_base_policy/not_bob/hard_fail" time="0"></testcase>
+	</testsuite>
+	<testsuite tests="1" failures="0" time="0" name="policies/common/enable_hard" timestamp="">
+		<properties></properties>
+		<testcase classname="policies/common/enable_hard" name="test_enable_hard" time="0"></testcase>
 	</testsuite>
 	<testsuite tests="1" failures="0" time="0" name="policies/common/error" timestamp="">
 		<properties></properties>
