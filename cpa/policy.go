@@ -114,11 +114,21 @@ func (policy Policy) Decide(ctx context.Context, input interface{}, opts ...Eval
 	}
 
 	hardFailRules = append(hardFailRules, enabledHardFailRules...)
-	enabledRules = append(enabledRules, enabledHardFailRules...)
 
 	hardFailMap := make(map[string]struct{})
 	for _, rule := range hardFailRules {
 		hardFailMap[rule] = struct{}{}
+	}
+
+	enabledRulesMap := make(map[string]struct{})
+	for _, rule := range enabledRules {
+		enabledRulesMap[rule] = struct{}{}
+	}
+
+	for _, rule := range enabledHardFailRules {
+		if _, ok := enabledRulesMap[rule]; !ok {
+			enabledRules = append(enabledRules, rule)
+		}
 	}
 
 	decision := Decision{EnabledRules: enabledRules}
