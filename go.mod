@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/open-policy-agent/opa v0.49.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/yazgazan/jaydiff v0.3.1
 	golang.org/x/exp v0.0.0-20230118134722-a68e582fa157
 	gopkg.in/yaml.v2 v2.4.0
