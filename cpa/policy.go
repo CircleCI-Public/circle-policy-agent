@@ -108,9 +108,27 @@ func (policy Policy) Decide(ctx context.Context, input interface{}, opts ...Eval
 		return nil, fmt.Errorf("invalid hard_fail: %w", err)
 	}
 
+	enabledHardFailRules, err := asStringSlice(org["enable_hard"])
+	if err != nil {
+		return nil, fmt.Errorf("invalid enable_hard: %w", err)
+	}
+
+	hardFailRules = append(hardFailRules, enabledHardFailRules...)
+
 	hardFailMap := make(map[string]struct{})
 	for _, rule := range hardFailRules {
 		hardFailMap[rule] = struct{}{}
+	}
+
+	enabledRulesMap := make(map[string]struct{})
+	for _, rule := range enabledRules {
+		enabledRulesMap[rule] = struct{}{}
+	}
+
+	for _, rule := range enabledHardFailRules {
+		if _, ok := enabledRulesMap[rule]; !ok {
+			enabledRules = append(enabledRules, rule)
+		}
 	}
 
 	decision := Decision{EnabledRules: enabledRules}
