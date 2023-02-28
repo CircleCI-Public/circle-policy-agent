@@ -2,7 +2,10 @@ test_enable_hard:
   decision:
     status: HARD_FAIL
     enabled_rules:
+      - double_enabled_rule
       - some_hard_rule
     hard_failures:
+      - rule: double_enabled_rule
+        reason: this hard rule was enabled twice but reported once
       - rule: some_hard_rule
         reason: this hard rule was enabled in one line - cool!
