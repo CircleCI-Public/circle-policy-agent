@@ -1,4 +1,4 @@
-<testsuites name="root" tests="48" failures="0" errors="0" time="0">
+<testsuites name="root" tests="51" failures="0" errors="0" time="0">
 	<testsuite tests="9" failures="0" time="0" name="&lt;opa.tests&gt;" timestamp="">
 		<properties></properties>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_array_scalar" time="0"></testcase>
@@ -84,6 +84,12 @@
 		<properties>
 			<property name="skipped" value="no tests"></property>
 		</properties>
+	</testsuite>
+	<testsuite tests="3" failures="0" time="0" name="policies/helpers/orbs/allowlist" timestamp="">
+		<properties></properties>
+		<testcase classname="policies/helpers/orbs/allowlist" name="test_allow_orbs" time="0"></testcase>
+		<testcase classname="policies/helpers/orbs/allowlist" name="test_allow_orbs/bad_orb_present" time="0"></testcase>
+		<testcase classname="policies/helpers/orbs/allowlist" name="test_allow_orbs/no_orbs_present" time="0"></testcase>
 	</testsuite>
 	<testsuite tests="5" failures="0" time="0" name="policies/helpers/orbs/ban_version" timestamp="">
 		<properties></properties>

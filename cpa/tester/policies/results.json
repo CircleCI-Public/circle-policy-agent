@@ -302,6 +302,27 @@
   },
   {
     "Passed": true,
+    "Group": "policies/helpers/orbs/allowlist",
+    "Name": "test_allow_orbs",
+    "Elapsed": "0s",
+    "ElapsedMS": 0
+  },
+  {
+    "Passed": true,
+    "Group": "policies/helpers/orbs/allowlist",
+    "Name": "test_allow_orbs/bad_orb_present",
+    "Elapsed": "0s",
+    "ElapsedMS": 0
+  },
+  {
+    "Passed": true,
+    "Group": "policies/helpers/orbs/allowlist",
+    "Name": "test_allow_orbs/no_orbs_present",
+    "Elapsed": "0s",
+    "ElapsedMS": 0
+  },
+  {
+    "Passed": true,
     "Group": "policies/helpers/orbs/ban_version",
     "Name": "test_ban_orbs",
     "Elapsed": "0s",
