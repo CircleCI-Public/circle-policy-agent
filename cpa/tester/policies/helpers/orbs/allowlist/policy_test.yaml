@@ -1,0 +1,28 @@
+test_allow_orbs:
+  input:
+    orbs:
+      allowed: partner/useful@1.2.3
+  decision:
+    status: PASS
+    enabled_rules:
+      - orbs_allowlist
+  cases:
+    bad_orb_present:
+      input:
+        orbs: 
+          allowed: partner/useful@1.2.3
+          notallowed: bad/bad@0.0.0
+      decision:
+        status: HARD_FAIL
+        enabled_rules:
+          - orbs_allowlist
+        hard_failures:
+          - rule: orbs_allowlist
+            reason: bad/bad orb is not allowed in CircleCI configuration
+    no_orbs_present:
+      input:
+        orbs: []
+      decision:
+        status: PASS
+        enabled_rules:
+          - orbs_allowlist

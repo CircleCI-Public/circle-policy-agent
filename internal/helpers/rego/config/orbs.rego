@@ -17,3 +17,9 @@ ban_orbs_version(banned_orbs) = { orb: msg | orb := banned_orbs[_]
   orbs[name] == version
   msg := sprintf("%s orb is not allowed in CircleCI configuration", [orb])
 }
+
+orbs_allowlist(allowed_orbs) = { orb: msg | orb := input["orbs"][_]
+  [name, _] := split(orb, "@")
+  not allowed_orbs[name]
+  msg := sprintf("%s orb is not allowed in CircleCI configuration", [name])
+}

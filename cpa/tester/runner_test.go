@@ -49,6 +49,7 @@ func TestRunner(t *testing.T) {
 		"policies/helpers",
 		"policies/helpers/contexts",
 		"policies/helpers/orbs",
+		"policies/helpers/orbs/allowlist",
 		"policies/helpers/orbs/ban_version",
 		"policies/helpers/runner",
 		"policies/helpers/utils",
