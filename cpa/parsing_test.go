@@ -95,6 +95,20 @@ func TestRegoLinting(t *testing.T) {
 			Error:     errors.New("failed policy linting: \"test\": test.rego:5: invalid use of data.meta.branch use data.meta.vcs.branch instead"),
 		},
 		{
+			Name: "fails if data.meta.branch multi bodies",
+			Document: `
+				package org
+				policy_name["test"]
+				rule {
+					data.meta.vcs.branch == "main"
+				} {
+					data.meta.branch == "main"
+				}	
+				`,
+			LintRules: []LintRule{DisallowMetaBranch()},
+			Error:     errors.New("failed policy linting: \"test\": test.rego:7: invalid use of data.meta.branch use data.meta.vcs.branch instead"),
+		},
+		{
 			Name: "passes if data.meta.vcs.branch is used",
 			Document: `
 				package org
