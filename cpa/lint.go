@@ -34,7 +34,7 @@ func DisallowMetaBranch() LintRule {
 					continue
 				}
 				for _, term := range terms {
-					if term.String() == "data.meta.branch" {
+					if term != nil && term.String() == "data.meta.branch" {
 						return lintErrf("%s: invalid use of data.meta.branch use data.meta.vcs.branch instead", term.Location.String())
 					}
 				}

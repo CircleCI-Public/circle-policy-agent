@@ -167,6 +167,32 @@ func TestParsePolicy(t *testing.T) {
 			}(),
 			Error: errors.New(`failed to parse policy file(s): failed to parse file: "test.rego": policy_name must be maximum 80 characters but got 81`),
 		},
+		{
+			Name: "fails if data.meta.branch is used",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name["test"]
+					rule {
+						data.meta.branch == "main"
+					}	
+				`,
+			},
+			Error: errors.New("failed policy linting: \"test\": test.rego:5: invalid use of data.meta.branch use data.meta.vcs.branch instead"),
+		},
+		{
+			Name: "fails if data.meta.branch is used",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name["test"]
+					rule {
+						data.meta.branch == "main"
+					}	
+				`,
+			},
+			Error: errors.New("failed policy linting: \"test\": test.rego:5: invalid use of data.meta.branch use data.meta.vcs.branch instead"),
+		},
 	}
 
 	for _, tc := range testCases {
