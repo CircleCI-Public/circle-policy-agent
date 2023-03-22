@@ -1,6 +1,6 @@
 module github.com/CircleCI-Public/circle-policy-agent
 
-go 1.18
+go 1.20
 
 require (
 	github.com/open-policy-agent/opa v0.50.2
