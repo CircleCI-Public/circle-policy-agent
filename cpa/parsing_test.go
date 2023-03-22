@@ -2,8 +2,9 @@ package cpa
 
 import (
 	"errors"
-	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestRegoParsing(t *testing.T) {
@@ -41,6 +42,27 @@ func TestRegoParsing(t *testing.T) {
 			`,
 			Error: nil,
 		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			_, err := parseBundle(map[string]string{"test.rego": tc.Document}, tc.LintRules...)
+			if tc.Error != nil {
+				require.ErrorContains(t, err, tc.Error.Error())
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestRegoLinting(t *testing.T) {
+	testCases := []struct {
+		Name      string
+		Document  string
+		LintRules []LintRule
+		Error     error
+	}{
 		{
 			Name: "fails package name linting",
 			Document: `
@@ -49,7 +71,7 @@ func TestRegoParsing(t *testing.T) {
 			`,
 			LintRules: []LintRule{AllowedPackages("good", "righteous")},
 			//nolint
-			Error: errors.New(`failed policy linting: lint error: "test": invalid package name: expected one of packages [good, righteous] but got "package evil"`),
+			Error: errors.New(`failed policy linting: "test": invalid package name: expected one of packages [good, righteous] but got "package evil"`),
 		},
 		{
 			Name: "passes package name linting",
@@ -60,25 +82,40 @@ func TestRegoParsing(t *testing.T) {
 			LintRules: []LintRule{AllowedPackages("good", "righteous")},
 			Error:     nil,
 		},
+		{
+			Name: "fails if data.meta.branch is used",
+			Document: `
+				package org
+				policy_name["test"]
+				rule {
+					data.meta.branch == "main"
+				}	
+				`,
+			LintRules: []LintRule{DisallowMetaBranch()},
+			Error:     errors.New("failed policy linting: \"test\": test.rego:5: invalid use of data.meta.branch use data.meta.vcs.branch instead"),
+		},
+		{
+			Name: "passes if data.meta.vcs.branch is used",
+			Document: `
+				package org
+				policy_name["test"]
+				rule {
+					data.meta.vcs.branch == "main"
+				}	
+				`,
+			LintRules: []LintRule{DisallowMetaBranch()},
+			Error:     nil,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			_, err := parseBundle(map[string]string{"test.rego": tc.Document}, tc.LintRules...)
-
-			if tc.Error == nil && err != nil {
-				t.Fatalf("expected no error but got: %v", err)
-			}
-
 			if tc.Error != nil {
-				if err == nil {
-					t.Fatalf("expected error %q but got none", tc.Error.Error())
-				}
-				expected := tc.Error.Error()
-				actual := err.Error()
-				if !strings.Contains(actual, expected) {
-					t.Fatalf("expected error %q but got %q", expected, actual)
-				}
+				require.EqualError(t, err, tc.Error.Error())
+				require.True(t, errors.Is(err, ErrLint))
+			} else {
+				require.NoError(t, err)
 			}
 		})
 	}

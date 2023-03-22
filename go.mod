@@ -3,8 +3,8 @@ module github.com/CircleCI-Public/circle-policy-agent
 go 1.18
 
 require (
-	github.com/open-policy-agent/opa v0.49.0
-	github.com/stretchr/testify v1.8.1
+	github.com/open-policy-agent/opa v0.50.2
+	github.com/stretchr/testify v1.8.2
 	github.com/yazgazan/jaydiff v0.3.1
 	golang.org/x/exp v0.0.0-20230118134722-a68e582fa157
 	gopkg.in/yaml.v2 v2.4.0
@@ -30,5 +30,5 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/yashtewari/glob-intersection v0.1.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
 )

@@ -68,7 +68,7 @@ func TestParsePolicy(t *testing.T) {
 				`,
 			},
 			//nolint
-			Error: errors.New(`failed policy linting: lint error: "test_1": invalid package name: expected one of packages [org] but got "package bad"`),
+			Error: errors.New(`failed policy linting: "test_1": invalid package name: expected one of packages [org] but got "package bad"`),
 		},
 		{
 			Name: "Successfully parses policy bundle when helper functions are added to the rego",

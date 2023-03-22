@@ -12,24 +12,6 @@ import (
 	"github.com/CircleCI-Public/circle-policy-agent/internal/helpers"
 )
 
-type LintRule func(*ast.Module) error
-
-func AllowedPackages(names ...string) LintRule {
-	return func(m *ast.Module) error {
-		packageName := strings.TrimPrefix(m.Package.String(), "package ")
-		for _, name := range names {
-			if name == packageName {
-				return nil
-			}
-		}
-		return fmt.Errorf(
-			"invalid package name: expected one of packages [%s] but got %q",
-			strings.Join(names, ", "),
-			m.Package,
-		)
-	}
-}
-
 const policyName = "policy_name"
 
 var policyNameExpr = regexp.MustCompile(`^\w+$`)
@@ -122,7 +104,7 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 	for policyName, mod := range moduleMap {
 		for _, rule := range rules {
 			if err := rule(mod); err != nil {
-				multiErr = append(multiErr, fmt.Errorf("lint error: %q: %w", policyName, err))
+				multiErr = append(multiErr, fmt.Errorf("%q: %w", policyName, err))
 			}
 		}
 	}
@@ -169,7 +151,7 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 //
 //nolint:lll
 func ParseBundle(files map[string]string) (*Policy, error) {
-	return parseBundle(files, AllowedPackages("org"))
+	return parseBundle(files, AllowedPackages("org"), DisallowMetaBranch())
 }
 
 type MultiError []error
@@ -188,4 +170,8 @@ func (err MultiError) Error() string {
 	default:
 		return fmt.Sprintf("%d error(s) occurred: %s", len(err), strings.Join(messages, "; "))
 	}
+}
+
+func (err MultiError) Unwrap() []error {
+	return []error(err)
 }
