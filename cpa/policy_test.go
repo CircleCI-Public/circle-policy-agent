@@ -68,7 +68,7 @@ func TestParsePolicy(t *testing.T) {
 				`,
 			},
 			//nolint
-			Error: errors.New(`failed policy linting: lint error: "test_1": invalid package name: expected one of packages [org] but got "package bad"`),
+			Error: errors.New(`failed policy linting: "test_1": invalid package name: expected one of packages [org] but got "package bad"`),
 		},
 		{
 			Name: "Successfully parses policy bundle when helper functions are added to the rego",
@@ -166,6 +166,32 @@ func TestParsePolicy(t *testing.T) {
 				}
 			}(),
 			Error: errors.New(`failed to parse policy file(s): failed to parse file: "test.rego": policy_name must be maximum 80 characters but got 81`),
+		},
+		{
+			Name: "fails if data.meta.branch is used",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name["test"]
+					rule {
+						data.meta.branch == "main"
+					}	
+				`,
+			},
+			Error: errors.New("failed policy linting: \"test\": test.rego:5: invalid use of data.meta.branch use data.meta.vcs.branch instead"),
+		},
+		{
+			Name: "fails if data.meta.branch is used",
+			DocumentBundle: map[string]string{
+				"test.rego": `
+					package org
+					policy_name["test"]
+					rule {
+						data.meta.branch == "main"
+					}	
+				`,
+			},
+			Error: errors.New("failed policy linting: \"test\": test.rego:5: invalid use of data.meta.branch use data.meta.vcs.branch instead"),
 		},
 	}
 
