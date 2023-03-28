@@ -13,8 +13,9 @@ import (
 	"github.com/CircleCI-Public/circle-policy-agent/cpa"
 	"github.com/CircleCI-Public/circle-policy-agent/internal"
 	"github.com/open-policy-agent/opa/tester"
-	"github.com/yazgazan/jaydiff/diff"
+	"github.com/pmezard/go-difflib/difflib"
 	"golang.org/x/exp/slices"
+	"gopkg.in/yaml.v3"
 )
 
 type Runner struct {
@@ -197,27 +198,26 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 
 		actualDecision = internal.Must(internal.ToRawInterface(actualDecision))
 
-		d := internal.Must(diff.Diff(actualDecision, decision))
+		diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+			A:        difflib.SplitLines(internal.Must(yamlfy(actualDecision))),
+			FromFile: "Expected",
+			B:        difflib.SplitLines(internal.Must(yamlfy(decision))),
+			ToFile:   "Actual",
+		})
 
 		results <- Result{
 			Group:  group,
 			Name:   name,
-			Passed: d.Diff() == diff.Identical,
+			Passed: diff == "",
 			Err: func() error {
-				if d.Diff() == diff.Identical {
+				if diff == "" {
 					return nil
 				}
-				return errors.New(d.StringIndent("", "  ", diff.Output{
-					Indent:     "  ",
-					Colorized:  true,
-					JSON:       true,
-					JSONValues: true,
-				}))
+				return errors.New(diff)
 			}(),
 			Elapsed: elapsed,
 			Ctx: map[string]any{
 				"input":      input,
-				"meta":       meta,
 				"decision":   actualDecision,
 				"evaluation": eval,
 			},
@@ -232,4 +232,9 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 			Decision: decision,
 		})
 	}
+}
+
+func yamlfy(value any) (string, error) {
+	raw, err := yaml.Marshal(value)
+	return string(raw), err
 }

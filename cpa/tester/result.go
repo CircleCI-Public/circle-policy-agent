@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/CircleCI-Public/circle-policy-agent/cpa"
@@ -117,13 +118,13 @@ func (rh StandardResultHandler) HandleResults(c <-chan Result) bool {
 			failed++
 			rh.table.Row("FAIL", result.Name, fmt.Sprintf("%.3fs", result.Elapsed.Seconds()))
 			if result.Err != nil {
-				rh.table.Textln(result.Err.Error())
+				rh.table.Textln("\n" + indent(result.Err.Error(), "    "))
 			}
 		}
 		if rh.debug {
 			rh.table.Textln("---- Debug Test Context ----")
 			_ = yaml.NewEncoder(rh.table).Encode(result.Ctx)
-			rh.table.Textln("---- End of Test Context ---")
+			rh.table.Textln("---- End of Test Context ---\n")
 		}
 	}
 
@@ -285,4 +286,12 @@ func MakeJSONResultHandler(opts ResultHandlerOptions) JSONResultHandler {
 		opts.Dst = os.Stderr
 	}
 	return JSONResultHandler{opts.Dst, opts.Debug}
+}
+
+func indent(value, indent string) string {
+	lines := strings.Split(value, "\n")
+	for i, line := range lines {
+		lines[i] = indent + line
+	}
+	return strings.Join(lines, "\n")
 }
