@@ -44,7 +44,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - '69:50:2f:53:40:38:a7:9c:42:1c:1e:6e:3e:fe:90:aa'
+            - '83:6d:88:ca:4a:cd:25:87:37:a9:5f:47:91:7e:76:4b'
       - checkout
       - run:
           name: Tag Repo
@@ -65,7 +65,7 @@ jobs:
           project: '${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}'
 
 workflows:
-  publish:
+  main:
     jobs:
       - lint
       - test
