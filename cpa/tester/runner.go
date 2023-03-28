@@ -199,9 +199,9 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 		actualDecision = internal.Must(internal.ToRawInterface(actualDecision))
 
 		diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-			A:        difflib.SplitLines(internal.Must(yamlfy(actualDecision))),
+			A:        difflib.SplitLines(internal.Must(yamlfy(decision))),
 			FromFile: "Expected",
-			B:        difflib.SplitLines(internal.Must(yamlfy(decision))),
+			B:        difflib.SplitLines(internal.Must(yamlfy(actualDecision))),
 			ToFile:   "Actual",
 		})
 
