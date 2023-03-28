@@ -203,6 +203,7 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 			FromFile: "Expected",
 			B:        difflib.SplitLines(internal.Must(yamlfy(actualDecision))),
 			ToFile:   "Actual",
+			Context:  1,
 		})
 
 		results <- Result{
