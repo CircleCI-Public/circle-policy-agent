@@ -3,7 +3,7 @@ module github.com/CircleCI-Public/circle-policy-agent
 go 1.20
 
 require (
-	github.com/open-policy-agent/opa v0.50.2
+	github.com/open-policy-agent/opa v0.51.0
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
