@@ -27,7 +27,7 @@ const (
 	Utils  helperType = "utils"
 )
 
-var types = []helperType{Config, Utils}
+var helperTypes = []helperType{Config, Utils}
 
 func containsType(list []helperType, value string) bool {
 	for _, elem := range list {
@@ -43,12 +43,12 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	if len(entries) != len(types) {
-		panic("mismatch between helper types and rego FS")
+	if len(entries) != len(helperTypes) {
+		panic("mismatch between helper helperTypes and rego FS")
 	}
 	for _, entry := range entries {
 		name := entry.Name()
-		if !containsType(types, name) {
+		if !containsType(helperTypes, name) {
 			panic("invalid helper type in rego FS: " + name)
 		}
 		helpers[name] = mustLoadRegoSubdir(path.Join("rego", name))

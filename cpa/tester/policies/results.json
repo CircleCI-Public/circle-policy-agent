@@ -302,6 +302,27 @@
   },
   {
     "Passed": true,
+    "Group": "policies/helpers/orbs/allow_types",
+    "Name": "test_allow_types",
+    "Elapsed": "0s",
+    "ElapsedMS": 0
+  },
+  {
+    "Passed": true,
+    "Group": "policies/helpers/orbs/allow_types",
+    "Name": "test_allow_types/no_orbs_present",
+    "Elapsed": "0s",
+    "ElapsedMS": 0
+  },
+  {
+    "Passed": true,
+    "Group": "policies/helpers/orbs/allow_types",
+    "Name": "test_allow_types/public_orb_present",
+    "Elapsed": "0s",
+    "ElapsedMS": 0
+  },
+  {
+    "Passed": true,
     "Group": "policies/helpers/orbs/allowlist",
     "Name": "test_allow_orbs",
     "Elapsed": "0s",

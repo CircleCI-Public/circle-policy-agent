@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/types"
 	"golang.org/x/exp/slices"
 
 	"github.com/CircleCI-Public/circle-policy-agent/internal/helpers"
@@ -112,6 +114,59 @@ func parseBundle(bundle map[string]string, rules ...LintRule) (*Policy, error) {
 	if len(multiErr) > 0 {
 		return nil, fmt.Errorf("failed policy linting: %w", multiErr)
 	}
+
+	rego.RegisterBuiltin2(&rego.Function{
+		Name: "validate_orb_types",
+		Decl: types.NewFunction(types.Args(types.A, types.A), types.A),
+	},
+		func(_ rego.BuiltinContext, _allowedOrbTypes, _orbsUsed *ast.Term) (*ast.Term, error) {
+
+			// This is a dummy orb registry. Some assumptions:
+			// 1. This would be replaced by a HTTP GET to a public endpoint which fetches similar data
+			// 2. An orb's type (certified/partner/public) can be known just by the namespace (eg all orbs under circleci/* are 'certified').
+			dummyOrbRegistry := map[string]string{
+				"certified_namespace":   "certified",
+				"certified_namespace_2": "certified",
+				"certified_namespace_3": "certified",
+				"partner_namespace":     "partner",
+				"partner_namespace_2":   "partner",
+				"partner_namespace_3":   "partner",
+				"public_namespace":      "public",
+				"public_namespace_2":    "public",
+				"public_namespace_3":    "public",
+			}
+
+			var orbsUsed map[string]string
+			var allowedOrbTypesSlice []string //TODO: Should ideally be a set for faster query, converted to map below
+			var violatingOrbs []string
+			err := ast.As(_orbsUsed.Value, &orbsUsed)
+			if err != nil {
+				panic(err)
+			}
+			err = ast.As(_allowedOrbTypes.Value, &allowedOrbTypesSlice)
+			if err != nil {
+				panic(err)
+			}
+			allowedOrbTypes := make(map[string]bool, len(allowedOrbTypesSlice))
+			for _, v := range allowedOrbTypesSlice {
+				allowedOrbTypes[v] = true
+			}
+
+			for orbUsed := range orbsUsed {
+				parts := strings.Split(orbUsed, "/")
+				orbNamespace := parts[0]
+				namespaceType, exists := dummyOrbRegistry[orbNamespace]
+				if !exists {
+					panic("unknown orb")
+				}
+				if _, ok := allowedOrbTypes[namespaceType]; !ok {
+					violatingOrbs = append(violatingOrbs, orbUsed)
+				}
+			}
+
+			a := ast.MustInterfaceToValue(violatingOrbs)
+			return ast.NewTerm(a), nil
+		})
 
 	if hasImport(moduleMap, "data.circleci.config") {
 		helpers.AppendHelpers(moduleMap, helpers.Config)

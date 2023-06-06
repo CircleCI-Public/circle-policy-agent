@@ -1,0 +1,30 @@
+test_allow_types:
+  input:
+    orbs:
+      certified_orb: certified_namespace/abc@1.2.3
+      partner_orb: partner_namespace/abc@1.2.3
+  decision:
+    status: PASS
+    enabled_rules:
+      - orbs_allow_types
+  cases:
+    public_orb_present:
+      input:
+        orbs:
+          certified_orb: certified_namespace/abc@1.2.3
+          partner_orb: partner_namespace/abc@1.2.3
+          public_orb: public_namespace/abc@1.2.3
+      decision:
+        status: HARD_FAIL
+        enabled_rules:
+          - orbs_allow_types
+        hard_failures:
+          - rule: orbs_allow_types
+            reason: 'orb types are not allowed for these orbs: ["public_namespace/abc"]'
+    no_orbs_present:
+      input:
+        orbs: [ ]
+      decision:
+        status: PASS
+        enabled_rules:
+          - orbs_allow_types

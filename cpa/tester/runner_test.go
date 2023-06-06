@@ -2,15 +2,15 @@ package tester
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/xml"
 	"os"
 	"regexp"
 	"testing"
 
-	_ "embed"
+	"github.com/stretchr/testify/require"
 
 	"github.com/CircleCI-Public/circle-policy-agent/internal/junit"
-	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -49,6 +49,7 @@ func TestRunner(t *testing.T) {
 		"policies/helpers",
 		"policies/helpers/contexts",
 		"policies/helpers/orbs",
+		"policies/helpers/orbs/allow_types",
 		"policies/helpers/orbs/allowlist",
 		"policies/helpers/orbs/ban_version",
 		"policies/helpers/runner",

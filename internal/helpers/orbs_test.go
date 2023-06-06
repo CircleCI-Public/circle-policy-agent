@@ -3,9 +3,12 @@ package helpers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
+	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,8 +22,23 @@ func TestOrbHelper(t *testing.T) {
 		},
 	}
 
+	validateOrbTypes := rego.Function2(
+		&rego.Function{
+			Name: "validate_orb_types",
+			Decl: types.NewFunction(types.Args(types.A, types.A), types.A),
+		},
+		func(_ rego.BuiltinContext, allowedOrbType, orbsUsed *ast.Term) (*ast.Term, error) {
+			dummyOrbRegistry := map[string]string{
+				"certified/abc": "certified",
+				"partner/abc":   "partner",
+				"public/abc":    "public",
+			}
+
+			return ast.MustParseTerm(fmt.Sprintf("%v", dummyOrbRegistry)), nil
+		})
+
 	result, err := rego.
-		New(rego.ParsedModule(mod), rego.Query("data"), rego.Input(input)).
+		New(rego.ParsedModule(mod), rego.Query("data"), rego.Input(input), validateOrbTypes).
 		Eval(context.Background())
 
 	require.NoError(t, err)
