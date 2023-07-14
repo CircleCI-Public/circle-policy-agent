@@ -11,6 +11,7 @@ test_ban_orbs:
       input:
         orbs: 
           security: bad@0.0.0
+          paramorb: <<pipeline.parameters.evilorb>>
       decision:
         status: SOFT_FAIL
         enabled_rules:
@@ -18,7 +19,9 @@ test_ban_orbs:
         soft_failures:
           - rule: ban_orbs
             reason: bad orb is not allowed in CircleCI configuration
-
+          - rule: ban_orbs
+            reason: "invalid orb: <<pipeline.parameters.evilorb>> - parameterized orbs are disallowed"
+          
 test_ban_orbs_version:
   meta:
     require_version: true
@@ -39,6 +42,7 @@ test_ban_orbs_version:
       input:
         orbs: 
           security: bad@1.2.3
+          paramorb: another-bad@<<pipeline.parameters.evilorbversion>>
       decision:
         status: SOFT_FAIL
         enabled_rules: 
@@ -46,4 +50,5 @@ test_ban_orbs_version:
         soft_failures:
           - reason: bad@1.2.3 orb is not allowed in CircleCI configuration
             rule: ban_orbs_version
-        
+          - reason: "invalid orb: another-bad@<<pipeline.parameters.evilorbversion>> - parameterized orbs are disallowed"
+            rule: ban_orbs_version

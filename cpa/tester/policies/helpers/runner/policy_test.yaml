@@ -7,6 +7,14 @@ test_runner_helper:
         resource_class: medium
       large_job:
         resource_class: large
+    _compiled_:
+      jobs:
+        small_job:
+          resource_class: small
+        medium_job:
+          resource_class: medium
+        large_job:
+          resource_class: large
   meta:
     project_id: large
   decision:

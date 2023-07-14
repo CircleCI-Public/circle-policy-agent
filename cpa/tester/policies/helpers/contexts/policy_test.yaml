@@ -11,6 +11,14 @@ test_allowlist:
               context: c1
           - build:
               context: c2
+    _compiled_:
+      workflows:
+        main:
+          jobs:
+            - test:
+                context: c1
+            - build:
+                context: c2
   decision: &root_decision
     status: PASS
     enabled_rules:
@@ -55,6 +63,12 @@ test_allowlist:
             jobs:
               - test:
                   context: [ bad, dangerous, secret ]
+        _compiled_:
+          workflows:
+            main:
+              jobs:
+                - test:
+                    context: [ bad, dangerous, secret ]
       decision:
         <<: *root_decision
         status: SOFT_FAIL
@@ -75,6 +89,14 @@ test_reservelist:
               context: c1
           - build:
               context: c2
+    _compiled_:
+      workflows:
+        main:
+          jobs:
+            - test:
+                context: c1
+            - build:
+                context: c2
   decision: *root_decision
 
   cases:
@@ -108,6 +130,12 @@ test_reservelist:
             jobs:
               - test:
                   context: [ c3, c4, c5 ]
+        _compiled_:
+          workflows:
+            main:
+              jobs:
+                - test:
+                    context: [ c3, c4, c5 ]
       decision: *root_decision
 
     test_multiple_invalid_contexts_in_job:
@@ -121,6 +149,14 @@ test_reservelist:
                   context: [ c1, c2, other, unreserved, context ]
               - build:
                   none
+        _compiled_:
+          workflows:
+            main:
+              jobs:
+                - test:
+                    context: [ c1, c2, other, unreserved, context ]
+                - build:
+                    none
       decision:
         <<: *root_decision
         status: SOFT_FAIL
@@ -141,6 +177,14 @@ test_blocked_contexts_list:
               context: [c1, c2]
           - build:
               context: c3
+    _compiled_:
+      workflows:
+        main:
+          jobs:
+            - test:
+                context: [c1, c2]
+            - build:
+                context: c3
   decision: *root_decision
 
   cases:
@@ -151,6 +195,13 @@ test_blocked_contexts_list:
             jobs:
               - test:
                   context: bad
+        _compiled_:
+          workflows:
+            main:
+              jobs:
+                - test:
+                    context: bad
+          
       decision:
         <<: *root_decision
         status: SOFT_FAIL
@@ -167,6 +218,14 @@ test_blocked_contexts_list:
                   context: bad
               - build:
                   context: [dangerous, secret]
+        _compiled_:
+          workflows:
+            main:
+              jobs:
+                - test:
+                    context: bad
+                - build:
+                    context: [dangerous, secret]
       decision:
         <<: *root_decision
         status: SOFT_FAIL
@@ -197,6 +256,17 @@ test_branch_reservelist:
               filters:
                 branches:
                   only: main
+    _compiled_:
+      workflows:
+        example:
+          jobs:
+            - test:
+                context: ok
+            - publish:
+                context: secret
+                filters:
+                  branches:
+                    only: main
   decision: *root_decision
 
   cases:
@@ -212,6 +282,17 @@ test_branch_reservelist:
                   filters:
                     branches:
                       only: [main, prod]
+        _compiled_:
+          workflows:
+            example:
+              jobs:
+                - test:
+                    context: ok
+                - publish:
+                    context: secret
+                    filters:
+                      branches:
+                        only: [main, prod]
       decision:
         <<: *root_decision
         status: SOFT_FAIL
@@ -229,6 +310,15 @@ test_branch_reservelist:
               - publish:
                   context: secret
                   filters: null
+        _compiled_:
+          workflows:
+            example:
+              jobs:
+                - test:
+                    context: ok
+                - publish:
+                    context: secret
+                    filters: null
       decision:
         <<: *root_decision
         status: SOFT_FAIL

@@ -64,6 +64,27 @@
   },
   {
     "Passed": true,
+    "Group": "\u003copa.tests\u003e",
+    "Name": "data.org.test_is_parameterized_expression_for_parameters_true",
+    "Elapsed": "0s",
+    "ElapsedMS": 0
+  },
+  {
+    "Passed": true,
+    "Group": "\u003copa.tests\u003e",
+    "Name": "data.org.test_is_parameterized_expression_for_pipeline_true",
+    "Elapsed": "0s",
+    "ElapsedMS": 0
+  },
+  {
+    "Passed": true,
+    "Group": "\u003copa.tests\u003e",
+    "Name": "data.org.test_is_parameterized_expression_false",
+    "Elapsed": "0s",
+    "ElapsedMS": 0
+  },
+  {
+    "Passed": true,
     "Group": "policies",
     "Elapsed": "0s",
     "ElapsedMS": 0,

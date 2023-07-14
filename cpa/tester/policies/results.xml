@@ -1,5 +1,5 @@
-<testsuites name="root" tests="51" failures="0" errors="0" time="0">
-	<testsuite tests="9" failures="0" time="0" name="&lt;opa.tests&gt;" timestamp="">
+<testsuites name="root" tests="54" failures="0" errors="0" time="0">
+	<testsuite tests="12" failures="0" time="0" name="&lt;opa.tests&gt;" timestamp="">
 		<properties></properties>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_array_scalar" time="0"></testcase>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_array_array" time="0"></testcase>
@@ -10,6 +10,9 @@
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_get_element_name_string" time="0"></testcase>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_get_element_name_object" time="0"></testcase>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_get_element_name_invalid_object" time="0"></testcase>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_is_parameterized_expression_for_parameters_true" time="0"></testcase>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_is_parameterized_expression_for_pipeline_true" time="0"></testcase>
+		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_is_parameterized_expression_false" time="0"></testcase>
 	</testsuite>
 	<testsuite tests="0" failures="0" time="0" name="policies" timestamp="">
 		<properties>

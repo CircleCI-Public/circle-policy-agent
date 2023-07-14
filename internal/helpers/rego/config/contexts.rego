@@ -7,7 +7,7 @@ import future.keywords
 contexts_blocked_by_project_ids(project_id, context_list) = {reason |
 	utils.to_set(project_id)[data.meta.project_id]
 
-	some wf_name, workflow in input.workflows
+	some wf_name, workflow in input._compiled_.workflows
 	some job_name, job_info in workflow.jobs[_]
 
 	illegal_contexts := utils.to_set(job_info.context) & utils.to_set(context_list)
@@ -19,7 +19,7 @@ contexts_blocked_by_project_ids(project_id, context_list) = {reason |
 contexts_allowed_by_project_ids(project_id, context_list) = {reason |
 	utils.to_set(project_id)[data.meta.project_id]
 
-	some wf_name, workflow in input.workflows
+	some wf_name, workflow in input._compiled_.workflows
 	some job_name, job_info in workflow.jobs[_]
 
 	illegal_contexts := utils.to_set(job_info.context) - utils.to_set(context_list)
@@ -31,7 +31,7 @@ contexts_allowed_by_project_ids(project_id, context_list) = {reason |
 contexts_reserved_by_project_ids(project_id, context_list) = {reason |
 	not utils.to_set(project_id)[data.meta.project_id]
 
-	some wf_name, workflow in input.workflows
+	some wf_name, workflow in input._compiled_.workflows
 	some job_name, job_info in workflow.jobs[_]
 
 	illegal_contexts := utils.to_set(job_info.context) & utils.to_set(context_list)
@@ -41,7 +41,7 @@ contexts_reserved_by_project_ids(project_id, context_list) = {reason |
 }
 
 contexts_reserved_by_branches(branch_list, context_list) = {reason |
-	some wf_name, workflow in input.workflows
+	some wf_name, workflow in input._compiled_.workflows
 	some job_name, job_info in workflow.jobs[_]
 
 	protected_contexts := utils.to_set(context_list) & utils.to_set(job_info.context)
@@ -55,7 +55,7 @@ contexts_reserved_by_branches(branch_list, context_list) = {reason |
 		[wf_name, job_name, concat(", ", protected_contexts), concat(", ", invalid_branches)],
 	)
 } | {reason |
-	some wf_name, workflow in input.workflows
+	some wf_name, workflow in input._compiled_.workflows
 	some job_name, job_info in workflow.jobs[_]
 
 	protected_contexts := utils.to_set(context_list) & utils.to_set(job_info.context)
