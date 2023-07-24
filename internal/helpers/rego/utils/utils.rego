@@ -16,3 +16,5 @@ get_element_name(value) := value if is_string(value) else := key {
 	count(value) == 1
 	some key, _ in value
 }
+
+is_parameterized_expression(expression) := regex.match(`<<\s*(pipeline|parameters)(\.[\w-]+)+\s*>>`, expression)
