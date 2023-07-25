@@ -49,9 +49,13 @@ func ConvertYAMLMapKeyTypes(x interface{}, path ...string) (interface{}, error) 
 	}
 }
 
-func Must[T any](value T, err error) T {
+func Must(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func Must2[T any](value T, err error) T {
+	Must(err)
 	return value
 }

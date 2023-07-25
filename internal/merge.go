@@ -7,7 +7,7 @@ func Merge(a, b any) any {
 		if !ok {
 			return b
 		}
-		return mergeMaps(va, vb)
+		return MergeMaps(va, vb)
 	case []any:
 		vb, ok := b.([]any)
 		if !ok {
@@ -19,7 +19,7 @@ func Merge(a, b any) any {
 	}
 }
 
-func mergeMaps(a, b map[string]any) map[string]any {
+func MergeMaps(a, b map[string]any) map[string]any {
 	result := make(map[string]any)
 	for k, va := range a {
 		if vb, ok := b[k]; ok {
