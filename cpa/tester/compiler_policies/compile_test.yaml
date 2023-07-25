@@ -1,0 +1,49 @@
+test_compiler:
+  compile: true
+  input:
+    # the test compiler will just pick up the compiled_definition key and inject it into _compiled_
+    # this allows us to simulate what a real compiler would do without importing and maintaining compiler code or clients within the agent
+    compiled_definition:
+      workflows:
+        main:
+          jobs:
+            - test:
+                context: c1
+
+  meta:
+    project_id: project
+
+  decision:
+    status: SOFT_FAIL
+    enabled_rules:
+      - context_blocklist
+    soft_failures:
+      - reason: 'main.test: uses context value(s) in blocklist for project: c1'
+        rule: context_blocklist
+
+  cases:
+    inherits_compile_option:
+      input:
+        compiled_definition:
+          workflows:
+            main:
+              jobs:
+                - test:
+                    context: c2 # diferentiating using c2
+      decision:
+        status: SOFT_FAIL
+        enabled_rules:
+          - context_blocklist
+        soft_failures:
+          - reason: 'main.test: uses context value(s) in blocklist for project: c2'
+            rule: context_blocklist
+
+    overrides_compile_option:
+      compile: false
+      input:
+        _compiled_: null
+      decision:
+        status: PASS
+        enabled_rules:
+          - context_blocklist
+        soft_failures: null

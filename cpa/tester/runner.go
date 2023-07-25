@@ -169,6 +169,20 @@ func (runner *Runner) runFolder(folder string, results chan<- Result) {
 }
 
 func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t NamedTest, group string, parent ParentTestContext) {
+	compile := func() bool {
+		if t.Compile != nil {
+			return *t.Compile
+		}
+		return parent.Compile
+	}()
+
+	pipelineParams := func() map[string]any {
+		if t.PipelineParameters == nil {
+			return parent.PipelineParameters
+		}
+		return internal.MergeMaps(parent.PipelineParameters, t.PipelineParameters)
+	}()
+
 	input := func() any {
 		if t.Input == nil {
 			return parent.Input
@@ -188,20 +202,6 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 			return parent.Decision
 		}
 		return internal.Merge(parent.Decision, t.Decision)
-	}()
-
-	compile := func() bool {
-		if t.Compile != nil {
-			return *t.Compile
-		}
-		return parent.Compile
-	}()
-
-	pipelineParams := func() map[string]any {
-		if t.PipelineParameters == nil {
-			return parent.PipelineParameters
-		}
-		return internal.MergeMaps(parent.PipelineParameters, t.PipelineParameters)
 	}()
 
 	name := t.Name
@@ -282,15 +282,17 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 		}()
 	}
 
+	parentContext := ParentTestContext{
+		Name:               name,
+		Input:              input,
+		Meta:               meta,
+		Decision:           decision,
+		Compile:            compile,
+		PipelineParameters: pipelineParams,
+	}
+
 	for _, subtest := range t.NamedCases() {
-		runner.runTest(policy, results, subtest, group, ParentTestContext{
-			Name:               name,
-			Input:              input,
-			Meta:               meta,
-			Decision:           decision,
-			Compile:            compile,
-			PipelineParameters: pipelineParams,
-		})
+		runner.runTest(policy, results, subtest, group, parentContext)
 	}
 }
 

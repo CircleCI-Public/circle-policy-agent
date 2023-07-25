@@ -11,6 +11,7 @@ import (
 
 	"github.com/CircleCI-Public/circle-policy-agent/internal/junit"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -184,4 +185,33 @@ func TestFailedPolicies(t *testing.T) {
 	  ]`,
 		buf.String(),
 	)
+}
+
+func TestCompilePolicies(t *testing.T) {
+	options := RunnerOptions{
+		Path: "./compiler_policies/...",
+		Include: func() *regexp.Regexp {
+			run := os.Getenv("RUN")
+			if run == "" {
+				return nil
+			}
+			return regexp.MustCompile(run)
+		}(),
+		Compile: func(b []byte, m map[string]any) ([]byte, error) {
+			var data map[string]any
+			if err := yaml.Unmarshal(b, &data); err != nil {
+				return nil, err
+			}
+			return yaml.Marshal(data["compiled_definition"])
+		},
+	}
+
+	runner, err := NewRunner(options)
+	require.NoError(t, err)
+
+	require.True(t, runner.RunAndHandleResults(MakeDefaultResultHandler(ResultHandlerOptions{
+		Verbose: os.Getenv("VERBOSE") == "true",
+		Debug:   os.Getenv("DEBUG") == "true",
+		Dst:     os.Stdout,
+	})))
 }
