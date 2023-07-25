@@ -3,6 +3,7 @@ package tester
 import (
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"os"
 	"regexp"
 	"testing"
@@ -188,30 +189,92 @@ func TestFailedPolicies(t *testing.T) {
 }
 
 func TestCompilePolicies(t *testing.T) {
-	options := RunnerOptions{
-		Path: "./compiler_policies/...",
-		Include: func() *regexp.Regexp {
-			run := os.Getenv("RUN")
-			if run == "" {
-				return nil
-			}
-			return regexp.MustCompile(run)
-		}(),
-		Compile: func(b []byte, m map[string]any) ([]byte, error) {
-			var data map[string]any
-			if err := yaml.Unmarshal(b, &data); err != nil {
-				return nil, err
-			}
-			return yaml.Marshal(data["compiled_definition"])
-		},
-	}
+	t.Run("with compiler", func(t *testing.T) {
+		options := RunnerOptions{
+			Path: "./compiler_policies/...",
+			Include: func() *regexp.Regexp {
+				run := os.Getenv("RUN")
+				if run == "" {
+					return nil
+				}
+				return regexp.MustCompile(run)
+			}(),
+			Compile: func(b []byte, m map[string]any) ([]byte, error) {
+				var data map[string]any
+				if err := yaml.Unmarshal(b, &data); err != nil {
+					return nil, err
+				}
+				return yaml.Marshal(data["compiled_definition"])
+			},
+		}
 
-	runner, err := NewRunner(options)
-	require.NoError(t, err)
+		runner, err := NewRunner(options)
+		require.NoError(t, err)
 
-	require.True(t, runner.RunAndHandleResults(MakeDefaultResultHandler(ResultHandlerOptions{
-		Verbose: os.Getenv("VERBOSE") == "true",
-		Debug:   os.Getenv("DEBUG") == "true",
-		Dst:     os.Stdout,
-	})))
+		require.True(t, runner.RunAndHandleResults(MakeDefaultResultHandler(ResultHandlerOptions{
+			Verbose: os.Getenv("VERBOSE") == "true",
+			Debug:   os.Getenv("DEBUG") == "true",
+			Dst:     os.Stdout,
+		})))
+	})
+
+	t.Run("without compiler", func(t *testing.T) {
+		options := RunnerOptions{
+			Path: "./compiler_policies/...",
+			Include: func() *regexp.Regexp {
+				run := os.Getenv("RUN")
+				if run == "" {
+					return nil
+				}
+				return regexp.MustCompile(run)
+			}(),
+		}
+
+		runner, err := NewRunner(options)
+		require.NoError(t, err)
+
+		sanitizedResults := make(chan Result)
+		go func() {
+			for r := range runner.Run() {
+				r.Elapsed = 0 // We cannot statically assert the elapsed time so we zero it out
+				sanitizedResults <- r
+			}
+			close(sanitizedResults)
+		}()
+
+		buf := new(bytes.Buffer)
+		opts := ResultHandlerOptions{Dst: buf}
+
+		MakeJSONResultHandler(opts).HandleResults(sanitizedResults)
+
+		fmt.Println(buf.String())
+
+		require.JSONEq(t, `[
+			  {
+			    "Passed": false,
+			    "Group": "compiler_policies",
+			    "Name": "test_compiler",
+			    "Elapsed": "0s",
+			    "ElapsedMS": 0,
+			    "Err": "test set compile to true but no compiler was provided"
+			  },
+			  {
+			    "Passed": false,
+			    "Group": "compiler_policies",
+			    "Name": "test_compiler/inherits_compile_option",
+			    "Elapsed": "0s",
+			    "ElapsedMS": 0,
+			    "Err": "test set compile to true but no compiler was provided"
+			  },
+			  {
+			    "Passed": true,
+			    "Group": "compiler_policies",
+			    "Name": "test_compiler/overrides_compile_option",
+			    "Elapsed": "0s",
+			    "ElapsedMS": 0
+			  }
+			]`,
+			buf.String(),
+		)
+	})
 }
