@@ -16,7 +16,7 @@ type Test struct {
 	Meta               any
 	Decision           any
 	Compile            *bool
-	PipelineParameters map[string]any
+	PipelineParameters map[string]any `yaml:"pipeline_parameters"`
 	Cases              map[string]*Test
 }
 
@@ -93,9 +93,12 @@ func sanitizeTest(t *Test) {
 	if t == nil {
 		return
 	}
-	t.Decision = internal.Must2(internal.ConvertYAMLMapKeyTypes(t.Decision))
-	t.Input = internal.Must2(internal.ConvertYAMLMapKeyTypes(t.Input))
-	t.Meta = internal.Must2(internal.ConvertYAMLMapKeyTypes(t.Meta))
+
+	t.Decision = internal.ConvertYAMLMapKeyTypes(t.Decision)
+	t.Input = internal.ConvertYAMLMapKeyTypes(t.Input)
+	t.Meta = internal.ConvertYAMLMapKeyTypes(t.Meta)
+	t.PipelineParameters = internal.ConvertYAMLMapKeyTypes(t.PipelineParameters).(map[string]any)
+
 	for _, t := range t.Cases {
 		sanitizeTest(t)
 	}

@@ -3,7 +3,6 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 )
 
 func ToRawInterface(value any) (any, error) {
@@ -18,34 +17,30 @@ func ToRawInterface(value any) (any, error) {
 	return result, nil
 }
 
-// This function has been stolen from the OPA codebase, ast/parser.go:2210 for
-// converting yaml decoded types to types that OPA can handle
-func ConvertYAMLMapKeyTypes(x interface{}, path ...string) (interface{}, error) {
-	var err error
+func ConvertYAMLMapKeyTypes(x any, path ...string) any {
 	switch x := x.(type) {
 	case map[interface{}]interface{}:
 		result := make(map[string]interface{}, len(x))
 		for k, v := range x {
 			str, ok := k.(string)
 			if !ok {
-				return nil, fmt.Errorf("invalid map key type(s): %v", strings.Join(path, "/"))
+				str = fmt.Sprintf("%v", k)
 			}
-			result[str], err = ConvertYAMLMapKeyTypes(v, append(path, str)...)
-			if err != nil {
-				return nil, err
-			}
+			result[str] = ConvertYAMLMapKeyTypes(v, append(path, str)...)
 		}
-		return result, nil
+		return result
+	case map[string]any:
+		for k, v := range x {
+			x[k] = ConvertYAMLMapKeyTypes(v, append(path, k)...)
+		}
+		return x
 	case []interface{}:
 		for i := range x {
-			x[i], err = ConvertYAMLMapKeyTypes(x[i], append(path, fmt.Sprintf("%d", i))...)
-			if err != nil {
-				return nil, err
-			}
+			x[i] = ConvertYAMLMapKeyTypes(x[i], append(path, fmt.Sprintf("%d", i))...)
 		}
-		return x, nil
+		return x
 	default:
-		return x, nil
+		return x
 	}
 }
 
