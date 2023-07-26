@@ -3,7 +3,6 @@ package tester
 import (
 	"bytes"
 	"encoding/xml"
-	"fmt"
 	"os"
 	"regexp"
 	"testing"
@@ -191,7 +190,7 @@ func TestFailedPolicies(t *testing.T) {
 func TestCompilePolicies(t *testing.T) {
 	t.Run("with compiler", func(t *testing.T) {
 		options := RunnerOptions{
-			Path: "./compiler_policies/...",
+			Path: "./compiler_policies/compile/...",
 			Include: func() *regexp.Regexp {
 				run := os.Getenv("RUN")
 				if run == "" {
@@ -220,7 +219,7 @@ func TestCompilePolicies(t *testing.T) {
 
 	t.Run("without compiler", func(t *testing.T) {
 		options := RunnerOptions{
-			Path: "./compiler_policies/...",
+			Path: "./compiler_policies/compile/...",
 			Include: func() *regexp.Regexp {
 				run := os.Getenv("RUN")
 				if run == "" {
@@ -247,12 +246,10 @@ func TestCompilePolicies(t *testing.T) {
 
 		MakeJSONResultHandler(opts).HandleResults(sanitizedResults)
 
-		fmt.Println(buf.String())
-
 		require.JSONEq(t, `[
 			  {
 			    "Passed": false,
-			    "Group": "compiler_policies",
+			    "Group": "compiler_policies/compile",
 			    "Name": "test_compiler",
 			    "Elapsed": "0s",
 			    "ElapsedMS": 0,
@@ -260,7 +257,7 @@ func TestCompilePolicies(t *testing.T) {
 			  },
 			  {
 			    "Passed": false,
-			    "Group": "compiler_policies",
+			    "Group": "compiler_policies/compile",
 			    "Name": "test_compiler/inherits_compile_option",
 			    "Elapsed": "0s",
 			    "ElapsedMS": 0,
@@ -268,7 +265,7 @@ func TestCompilePolicies(t *testing.T) {
 			  },
 			  {
 			    "Passed": true,
-			    "Group": "compiler_policies",
+			    "Group": "compiler_policies/compile",
 			    "Name": "test_compiler/overrides_compile_option",
 			    "Elapsed": "0s",
 			    "ElapsedMS": 0
@@ -277,4 +274,29 @@ func TestCompilePolicies(t *testing.T) {
 			buf.String(),
 		)
 	})
+}
+
+func TestPipelineParameters(t *testing.T) {
+	options := RunnerOptions{
+		Path: "./compiler_policies/parameters/...",
+		Include: func() *regexp.Regexp {
+			run := os.Getenv("RUN")
+			if run == "" {
+				return nil
+			}
+			return regexp.MustCompile(run)
+		}(),
+		Compile: func(b []byte, m map[string]any) ([]byte, error) {
+			return yaml.Marshal(m)
+		},
+	}
+
+	runner, err := NewRunner(options)
+	require.NoError(t, err)
+
+	require.True(t, runner.RunAndHandleResults(MakeDefaultResultHandler(ResultHandlerOptions{
+		Verbose: os.Getenv("VERBOSE") == "true",
+		Debug:   os.Getenv("DEBUG") == "true",
+		Dst:     os.Stdout,
+	})))
 }
