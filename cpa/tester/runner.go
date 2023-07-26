@@ -21,11 +21,13 @@ import (
 type Runner struct {
 	include *regexp.Regexp
 	folders []string
+	compile func([]byte, map[string]any) ([]byte, error)
 }
 
 type RunnerOptions struct {
 	Path    string
 	Include *regexp.Regexp
+	Compile func([]byte, map[string]any) ([]byte, error)
 }
 
 var ErrNoTests = errors.New("no tests")
@@ -40,7 +42,11 @@ func NewRunner(opts RunnerOptions) (*Runner, error) {
 		return nil, fmt.Errorf("failed to lookup test folders: %w", err)
 	}
 
-	return &Runner{folders: folders, include: opts.Include}, nil
+	return &Runner{
+		include: opts.Include,
+		folders: folders,
+		compile: opts.Compile,
+	}, nil
 }
 
 func (runner *Runner) Run() <-chan Result {
@@ -76,7 +82,7 @@ func (runner *Runner) runOpaTests(results chan<- Result) {
 		return
 	}
 
-	for r := range internal.Must(tester.NewRunner().Run(context.Background(), policy.Modules())) {
+	for r := range internal.Must2(tester.NewRunner().Run(context.Background(), policy.Modules())) {
 		name := r.Package + "." + r.Name
 		if runner.include != nil && !runner.include.MatchString(name) {
 			continue
@@ -163,6 +169,20 @@ func (runner *Runner) runFolder(folder string, results chan<- Result) {
 }
 
 func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t NamedTest, group string, parent ParentTestContext) {
+	compile := func() bool {
+		if t.Compile != nil {
+			return *t.Compile
+		}
+		return parent.Compile
+	}()
+
+	pipelineParams := func() map[string]any {
+		if t.PipelineParameters == nil {
+			return parent.PipelineParameters
+		}
+		return internal.MergeMaps(parent.PipelineParameters, t.PipelineParameters)
+	}()
+
 	input := func() any {
 		if t.Input == nil {
 			return parent.Input
@@ -190,48 +210,89 @@ func (runner *Runner) runTest(policy *cpa.Policy, results chan<- Result, t Named
 	}
 
 	if decision != nil && (runner.include == nil || runner.include.MatchString(name)) {
-		eval, _ := policy.Eval(context.Background(), "data", input, cpa.Meta(meta))
-
-		start := time.Now()
-		var actualDecision any = internal.Must(policy.Decide(context.Background(), input, cpa.Meta(meta)))
-		elapsed := time.Since(start)
-
-		actualDecision = internal.Must(internal.ToRawInterface(actualDecision))
-
-		diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-			A:        difflib.SplitLines(internal.Must(yamlfy(decision))),
-			FromFile: "Expected",
-			B:        difflib.SplitLines(internal.Must(yamlfy(actualDecision))),
-			ToFile:   "Actual",
-			Context:  1,
-		})
-
-		results <- Result{
-			Group:  group,
-			Name:   name,
-			Passed: diff == "",
-			Err: func() error {
-				if diff == "" {
-					return nil
+		func() {
+			if compile || pipelineParams != nil {
+				if runner.compile == nil {
+					results <- Result{
+						Group: group,
+						Name:  name,
+						Err:   errors.New("test set compile to true but no compiler was provided"),
+					}
+					return
 				}
-				return errors.New(diff)
-			}(),
-			Elapsed: elapsed,
-			Ctx: map[string]any{
-				"input":      input,
-				"decision":   actualDecision,
-				"evaluation": eval,
-			},
-		}
+
+				inputData := internal.Must2(yaml.Marshal(input))
+
+				compiledData, err := runner.compile(inputData, pipelineParams)
+				if err != nil {
+					results <- Result{
+						Group: group,
+						Name:  name,
+						Err:   fmt.Errorf("failed to compile test input: %w", err),
+						Ctx: map[string]any{
+							"input":               input,
+							"pipeline-parameters": pipelineParams,
+						},
+					}
+					return
+				}
+
+				input = func() any {
+					i := input.(map[string]any)
+					var compiled any
+					internal.Must(yaml.Unmarshal(compiledData, &compiled))
+					i["_compiled_"] = compiled
+					return i
+				}()
+			}
+
+			eval, _ := policy.Eval(context.Background(), "data", input, cpa.Meta(meta))
+
+			start := time.Now()
+			var actualDecision any = internal.Must2(policy.Decide(context.Background(), input, cpa.Meta(meta)))
+			elapsed := time.Since(start)
+
+			actualDecision = internal.Must2(internal.ToRawInterface(actualDecision))
+
+			diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+				A:        difflib.SplitLines(internal.Must2(yamlfy(decision))),
+				FromFile: "Expected",
+				B:        difflib.SplitLines(internal.Must2(yamlfy(actualDecision))),
+				ToFile:   "Actual",
+				Context:  1,
+			})
+
+			results <- Result{
+				Group:  group,
+				Name:   name,
+				Passed: diff == "",
+				Err: func() error {
+					if diff == "" {
+						return nil
+					}
+					return errors.New(diff)
+				}(),
+				Elapsed: elapsed,
+				Ctx: map[string]any{
+					"input":      input,
+					"decision":   actualDecision,
+					"evaluation": eval,
+				},
+			}
+		}()
+	}
+
+	parentContext := ParentTestContext{
+		Name:               name,
+		Input:              input,
+		Meta:               meta,
+		Decision:           decision,
+		Compile:            compile,
+		PipelineParameters: pipelineParams,
 	}
 
 	for _, subtest := range t.NamedCases() {
-		runner.runTest(policy, results, subtest, group, ParentTestContext{
-			Name:     name,
-			Input:    input,
-			Meta:     meta,
-			Decision: decision,
-		})
+		runner.runTest(policy, results, subtest, group, parentContext)
 	}
 }
 

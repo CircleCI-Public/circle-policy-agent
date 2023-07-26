@@ -1,0 +1,26 @@
+test_parameters:
+  meta:
+    expected_parameters:
+      branch: main
+      parameters:
+        custom: value
+  pipeline_parameters:
+    branch: main
+    parameters:
+      custom: value
+  input: {}
+  decision: &pass
+    status: PASS
+    enabled_rules:
+      - assert_params
+
+  cases:
+    merge:
+      meta:
+        expected_parameters:
+          branch: develop
+          parameters:
+            custom: value
+      pipeline_parameters:
+        branch: develop
+      decision: *pass

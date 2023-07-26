@@ -12,10 +12,12 @@ import (
 )
 
 type Test struct {
-	Input    any
-	Meta     any
-	Decision any
-	Cases    map[string]*Test
+	Input              any
+	Meta               any
+	Decision           any
+	Compile            *bool
+	PipelineParameters map[string]any `yaml:"pipeline_parameters"`
+	Cases              map[string]*Test
 }
 
 func (t Test) NamedCases() []NamedTest {
@@ -33,10 +35,12 @@ type NamedTest struct {
 }
 
 type ParentTestContext struct {
-	Name     string
-	Input    any
-	Meta     any
-	Decision any
+	Name               string
+	Input              any
+	Meta               any
+	Decision           any
+	Compile            bool
+	PipelineParameters map[string]any
 }
 
 func loadTests(path string) (tests map[string]*Test, err error) {
@@ -89,9 +93,12 @@ func sanitizeTest(t *Test) {
 	if t == nil {
 		return
 	}
-	t.Decision = internal.Must(internal.ConvertYAMLMapKeyTypes(t.Decision))
-	t.Input = internal.Must(internal.ConvertYAMLMapKeyTypes(t.Input))
-	t.Meta = internal.Must(internal.ConvertYAMLMapKeyTypes(t.Meta))
+
+	t.Decision = internal.ConvertYAMLMapKeyTypes(t.Decision)
+	t.Input = internal.ConvertYAMLMapKeyTypes(t.Input)
+	t.Meta = internal.ConvertYAMLMapKeyTypes(t.Meta)
+	t.PipelineParameters = internal.ConvertYAMLMapKeyTypes(t.PipelineParameters).(map[string]any)
+
 	for _, t := range t.Cases {
 		sanitizeTest(t)
 	}
