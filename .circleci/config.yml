@@ -59,22 +59,22 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Setup Scanning
-        command: |
-            git config --global url."https://$GITHUB_USER:$GITHUB_TOKEN@github.com/circleci/".insteadOf "https://github.com/circleci/"
+          name: Setup Scanning
+          command: |
+              git config --global url."https://$GITHUB_USER:$GITHUB_TOKEN@github.com/circleci/".insteadOf "https://github.com/circleci/"
       - when:
-        condition:
-          or:
-            - equal: [ main, << pipeline.git.branch >> ]
-        steps:
-            - run:
-                name: Launching Snyk Orb Scanning
-                command: echo "Running snyk/scan on main; uploading the results"
-            - snyk/scan:
-                fail-on-issues: false
-                severity-threshold: high
-                monitor-on-build: true
-                project: '${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}'
+          condition:
+            or:
+              - equal: [ main, << pipeline.git.branch >> ]
+          steps:
+              - run:
+                  name: Launching Snyk Orb Scanning
+                  command: echo "Running snyk/scan on main; uploading the results"
+              - snyk/scan:
+                  fail-on-issues: false
+                  severity-threshold: high
+                  monitor-on-build: true
+                  project: '${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}'
     - unless:
         condition:
             or:
