@@ -6,7 +6,7 @@ orbs:
 executors:
   go:
     docker:
-      - image: cimg/go:1.20
+      - image: cimg/go:1.20.12
     environment:
       CGO_ENABLED: 0
 
