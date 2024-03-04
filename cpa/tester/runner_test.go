@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
 	_ "embed"
 
@@ -118,7 +119,10 @@ func TestRunnerResults(t *testing.T) {
 		buf := new(bytes.Buffer)
 		opts := ResultHandlerOptions{Dst: buf}
 
-		MakeJUnitResultHandler(opts).HandleResults(runner.Run())
+		MakeJUnitResultHandlerWithGetTime(opts, func() time.Time {
+			t, _ := time.Parse(time.RFC3339, "2024-03-04T10:50:05Z")
+			return t
+		}).HandleResults(runner.Run())
 
 		suites := junit.JUnitTestSuites{}
 		require.NoError(t, xml.Unmarshal(buf.Bytes(), &suites))

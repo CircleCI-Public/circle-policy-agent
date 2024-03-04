@@ -167,7 +167,8 @@ func (jrh JSONResultHandler) HandleResults(c <-chan Result) bool {
 }
 
 type JUnitResultHandler struct {
-	w io.Writer
+	getTime func() time.Time
+	w       io.Writer
 }
 
 func (rh JUnitResultHandler) HandleResults(c <-chan Result) bool {
@@ -183,6 +184,7 @@ func (rh JUnitResultHandler) HandleResults(c <-chan Result) bool {
 			return
 		}
 		currentSuite.Time = fmt.Sprintf("%.3f", currentSuiteTime.Seconds())
+		currentSuite.Timestamp = rh.getTime().Format(time.RFC3339)
 		currentSuiteTime = 0
 		root.Suites = append(root.Suites, currentSuite)
 	}
@@ -256,8 +258,13 @@ func (rh JUnitResultHandler) HandleResults(c <-chan Result) bool {
 }
 
 func MakeJUnitResultHandler(opts ResultHandlerOptions) JUnitResultHandler {
+	return MakeJUnitResultHandlerWithGetTime(opts, time.Now)
+}
+
+func MakeJUnitResultHandlerWithGetTime(opts ResultHandlerOptions, getTime func() time.Time) JUnitResultHandler {
 	return JUnitResultHandler{
-		w: opts.Dst,
+		getTime: getTime,
+		w:       opts.Dst,
 	}
 }
 
