@@ -17,25 +17,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var (
-	clock Clock = StandardClock{}
-)
-
-type Clock interface {
-	Now() time.Time
-}
-
-type StandardClock struct{}
-
-func (StandardClock) Now() time.Time { return time.Now() }
-
-type MockedClock struct{}
-
-func (MockedClock) Now() time.Time {
-	t, _ := time.Parse(time.RFC3339, "2024-03-04T10:50:05Z")
-	return t
-}
-
 type Result struct {
 	Group  string
 	Name   string
@@ -186,7 +167,8 @@ func (jrh JSONResultHandler) HandleResults(c <-chan Result) bool {
 }
 
 type JUnitResultHandler struct {
-	w io.Writer
+	getTime func() time.Time
+	w       io.Writer
 }
 
 func (rh JUnitResultHandler) HandleResults(c <-chan Result) bool {
@@ -202,7 +184,7 @@ func (rh JUnitResultHandler) HandleResults(c <-chan Result) bool {
 			return
 		}
 		currentSuite.Time = fmt.Sprintf("%.3f", currentSuiteTime.Seconds())
-		currentSuite.Timestamp = clock.Now().Format(time.RFC3339)
+		currentSuite.Timestamp = rh.getTime().Format(time.RFC3339)
 		currentSuiteTime = 0
 		root.Suites = append(root.Suites, currentSuite)
 	}
@@ -276,8 +258,13 @@ func (rh JUnitResultHandler) HandleResults(c <-chan Result) bool {
 }
 
 func MakeJUnitResultHandler(opts ResultHandlerOptions) JUnitResultHandler {
+	return MakeJUnitResultHandlerWithGetTime(opts, time.Now)
+}
+
+func MakeJUnitResultHandlerWithGetTime(opts ResultHandlerOptions, getTime func() time.Time) JUnitResultHandler {
 	return JUnitResultHandler{
-		w: opts.Dst,
+		getTime: getTime,
+		w:       opts.Dst,
 	}
 }
 
