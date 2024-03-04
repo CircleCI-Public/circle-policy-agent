@@ -1,5 +1,5 @@
 <testsuites name="root" tests="54" failures="0" errors="0" time="0">
-	<testsuite tests="12" failures="0" time="0" name="&lt;opa.tests&gt;" timestamp="">
+	<testsuite tests="12" failures="0" time="0" name="&lt;opa.tests&gt;" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_array_scalar" time="0"></testcase>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_to_array_array" time="0"></testcase>
@@ -14,56 +14,56 @@
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_is_parameterized_expression_for_pipeline_true" time="0"></testcase>
 		<testcase classname="&lt;opa.tests&gt;" name="data.org.test_is_parameterized_expression_false" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="0" failures="0" time="0" name="policies" timestamp="">
+	<testsuite tests="0" failures="0" time="0" name="policies" timestamp="2024-03-04T10:50:05Z">
 		<properties>
 			<property name="skipped" value="no tests"></property>
 		</properties>
 	</testsuite>
-	<testsuite tests="0" failures="0" time="0" name="policies/common" timestamp="">
+	<testsuite tests="0" failures="0" time="0" name="policies/common" timestamp="2024-03-04T10:50:05Z">
 		<properties>
 			<property name="skipped" value="no tests"></property>
 		</properties>
 	</testsuite>
-	<testsuite tests="3" failures="0" time="0" name="policies/common/base" timestamp="">
+	<testsuite tests="3" failures="0" time="0" name="policies/common/base" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/common/base" name="test_base_policy" time="0"></testcase>
 		<testcase classname="policies/common/base" name="test_base_policy/not_bob" time="0"></testcase>
 		<testcase classname="policies/common/base" name="test_base_policy/not_bob/hard_fail" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="1" failures="0" time="0" name="policies/common/enable_hard" timestamp="">
+	<testsuite tests="1" failures="0" time="0" name="policies/common/enable_hard" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/common/enable_hard" name="test_enable_hard" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="1" failures="0" time="0" name="policies/common/error" timestamp="">
+	<testsuite tests="1" failures="0" time="0" name="policies/common/error" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/common/error" name="test_error" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="1" failures="0" time="0" name="policies/common/no_enabled_rules" timestamp="">
+	<testsuite tests="1" failures="0" time="0" name="policies/common/no_enabled_rules" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/common/no_enabled_rules" name="test_no_enabled_rules" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="4" failures="0" time="0" name="policies/common/reason_types" timestamp="">
+	<testsuite tests="4" failures="0" time="0" name="policies/common/reason_types" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/common/reason_types" name="test_reason_types" time="0"></testcase>
 		<testcase classname="policies/common/reason_types" name="test_reason_types/array" time="0"></testcase>
 		<testcase classname="policies/common/reason_types" name="test_reason_types/map" time="0"></testcase>
 		<testcase classname="policies/common/reason_types" name="test_reason_types/string" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="1" failures="0" time="0" name="policies/common/soft_and_hard_fail_together" timestamp="">
+	<testsuite tests="1" failures="0" time="0" name="policies/common/soft_and_hard_fail_together" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/common/soft_and_hard_fail_together" name="test_soft_and_hard_fail_together" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="2" failures="0" time="0" name="policies/common/structure" timestamp="">
+	<testsuite tests="2" failures="0" time="0" name="policies/common/structure" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/common/structure" name="test_structure/with_meta" time="0"></testcase>
 		<testcase classname="policies/common/structure" name="test_structure/with_meta/good" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="0" failures="0" time="0" name="policies/helpers" timestamp="">
+	<testsuite tests="0" failures="0" time="0" name="policies/helpers" timestamp="2024-03-04T10:50:05Z">
 		<properties>
 			<property name="skipped" value="no tests"></property>
 		</properties>
 	</testsuite>
-	<testsuite tests="17" failures="0" time="0" name="policies/helpers/contexts" timestamp="">
+	<testsuite tests="17" failures="0" time="0" name="policies/helpers/contexts" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/helpers/contexts" name="test_allowlist" time="0"></testcase>
 		<testcase classname="policies/helpers/contexts" name="test_allowlist/invalid_context" time="0"></testcase>
@@ -83,18 +83,18 @@
 		<testcase classname="policies/helpers/contexts" name="test_reservelist/test_multiple_invalid_contexts_in_job" time="0"></testcase>
 		<testcase classname="policies/helpers/contexts" name="test_reservelist/test_unreserved_contexts" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="0" failures="0" time="0" name="policies/helpers/orbs" timestamp="">
+	<testsuite tests="0" failures="0" time="0" name="policies/helpers/orbs" timestamp="2024-03-04T10:50:05Z">
 		<properties>
 			<property name="skipped" value="no tests"></property>
 		</properties>
 	</testsuite>
-	<testsuite tests="3" failures="0" time="0" name="policies/helpers/orbs/allowlist" timestamp="">
+	<testsuite tests="3" failures="0" time="0" name="policies/helpers/orbs/allowlist" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/helpers/orbs/allowlist" name="test_allow_orbs" time="0"></testcase>
 		<testcase classname="policies/helpers/orbs/allowlist" name="test_allow_orbs/bad_orb_present" time="0"></testcase>
 		<testcase classname="policies/helpers/orbs/allowlist" name="test_allow_orbs/no_orbs_present" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="5" failures="0" time="0" name="policies/helpers/orbs/ban_version" timestamp="">
+	<testsuite tests="5" failures="0" time="0" name="policies/helpers/orbs/ban_version" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/helpers/orbs/ban_version" name="test_ban_orbs" time="0"></testcase>
 		<testcase classname="policies/helpers/orbs/ban_version" name="test_ban_orbs/orb_present" time="0"></testcase>
@@ -102,32 +102,32 @@
 		<testcase classname="policies/helpers/orbs/ban_version" name="test_ban_orbs_version/exact_match" time="0"></testcase>
 		<testcase classname="policies/helpers/orbs/ban_version" name="test_ban_orbs_version/wrong_version" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="3" failures="0" time="0" name="policies/helpers/runner" timestamp="">
+	<testsuite tests="3" failures="0" time="0" name="policies/helpers/runner" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/helpers/runner" name="test_runner_helper" time="0"></testcase>
 		<testcase classname="policies/helpers/runner" name="test_runner_helper/project_medium" time="0"></testcase>
 		<testcase classname="policies/helpers/runner" name="test_runner_helper/project_small" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="0" failures="0" time="0" name="policies/helpers/utils" timestamp="">
+	<testsuite tests="0" failures="0" time="0" name="policies/helpers/utils" timestamp="2024-03-04T10:50:05Z">
 		<properties>
 			<property name="skipped" value="no tests"></property>
 		</properties>
 	</testsuite>
-	<testsuite tests="1" failures="0" time="0" name="policies/multifile" timestamp="">
+	<testsuite tests="1" failures="0" time="0" name="policies/multifile" timestamp="2024-03-04T10:50:05Z">
 		<properties></properties>
 		<testcase classname="policies/multifile" name="test_multifile_policy" time="0"></testcase>
 	</testsuite>
-	<testsuite tests="0" failures="0" time="0" name="policies/multifile/sub0" timestamp="">
+	<testsuite tests="0" failures="0" time="0" name="policies/multifile/sub0" timestamp="2024-03-04T10:50:05Z">
 		<properties>
 			<property name="skipped" value="no tests"></property>
 		</properties>
 	</testsuite>
-	<testsuite tests="0" failures="0" time="0" name="policies/multifile/sub1" timestamp="">
+	<testsuite tests="0" failures="0" time="0" name="policies/multifile/sub1" timestamp="2024-03-04T10:50:05Z">
 		<properties>
 			<property name="skipped" value="no tests"></property>
 		</properties>
 	</testsuite>
-	<testsuite tests="0" failures="0" time="0" name="policies/multifile/sub1/sub1_0" timestamp="">
+	<testsuite tests="0" failures="0" time="0" name="policies/multifile/sub1/sub1_0" timestamp="2024-03-04T10:50:05Z">
 		<properties>
 			<property name="skipped" value="no tests"></property>
 		</properties>

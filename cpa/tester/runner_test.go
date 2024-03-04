@@ -101,6 +101,10 @@ func TestRunnerResults(t *testing.T) {
 	})
 
 	t.Run("xml", func(t *testing.T) {
+		oldClock := clock
+		defer func() { clock = oldClock }()
+		clock = MockedClock{}
+
 		options := RunnerOptions{
 			Path: "./policies/...",
 			Include: func() *regexp.Regexp {
