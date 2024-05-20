@@ -21,6 +21,9 @@ jobs:
       - run:
           name: check go.mod
           command: go mod tidy -v && git diff --exit-code -- go.mod go.sum
+      - run: env
+      - run: set
+      - run: sleep 10
 
   test:
     executor: go
