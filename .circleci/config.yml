@@ -11,6 +11,7 @@ executors:
       CGO_ENABLED: 0
 
 jobs:
+  # this is the lint job
   lint:
     executor: go
     steps:
