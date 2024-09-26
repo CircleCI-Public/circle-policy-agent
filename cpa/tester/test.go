@@ -4,10 +4,10 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/CircleCI-Public/circle-policy-agent/internal"
-	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v2"
 )
 
@@ -25,7 +25,8 @@ func (t Test) NamedCases() []NamedTest {
 	for name, test := range t.Cases {
 		result = append(result, NamedTest{name, test})
 	}
-	slices.SortFunc(result, func(a, b NamedTest) bool { return a.Name < b.Name })
+	sort.Slice(result, func(i, j int) bool { return result[i].Name < result[j].Name })
+
 	return result
 }
 
