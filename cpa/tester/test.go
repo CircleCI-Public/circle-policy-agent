@@ -1,10 +1,11 @@
 package tester
 
 import (
+	"cmp"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/CircleCI-Public/circle-policy-agent/internal"
@@ -25,7 +26,9 @@ func (t Test) NamedCases() []NamedTest {
 	for name, test := range t.Cases {
 		result = append(result, NamedTest{name, test})
 	}
-	sort.Slice(result, func(i, j int) bool { return result[i].Name < result[j].Name })
+	slices.SortFunc(result, func(a, b NamedTest) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
 
 	return result
 }
