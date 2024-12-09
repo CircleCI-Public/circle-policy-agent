@@ -1,13 +1,14 @@
 package tester
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
@@ -161,7 +162,9 @@ func (runner *Runner) runFolder(folder string, results chan<- Result) {
 		return
 	}
 
-	sort.Slice(namedTests, func(i, j int) bool { return namedTests[i].Name < namedTests[j].Name })
+	slices.SortFunc(namedTests, func(a, b NamedTest) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
 
 	for _, t := range namedTests {
 		runner.runTest(policy, results, t, folder, ParentTestContext{})
