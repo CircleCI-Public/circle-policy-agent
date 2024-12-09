@@ -6,8 +6,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/open-policy-agent/opa/ast"
 	"slices"
+
+	"github.com/open-policy-agent/opa/ast"
 
 	"github.com/CircleCI-Public/circle-policy-agent/internal/helpers"
 )
