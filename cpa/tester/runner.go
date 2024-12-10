@@ -1,12 +1,14 @@
 package tester
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -14,7 +16,6 @@ import (
 	"github.com/CircleCI-Public/circle-policy-agent/internal"
 	"github.com/open-policy-agent/opa/tester"
 	"github.com/pmezard/go-difflib/difflib"
-	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
 )
 
@@ -161,7 +162,9 @@ func (runner *Runner) runFolder(folder string, results chan<- Result) {
 		return
 	}
 
-	slices.SortFunc(namedTests, func(a, b NamedTest) bool { return a.Name < b.Name })
+	slices.SortFunc(namedTests, func(a, b NamedTest) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
 
 	for _, t := range namedTests {
 		runner.runTest(policy, results, t, folder, ParentTestContext{})

@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/exp/maps"
 )
 
 func TestParsePolicy(t *testing.T) {
@@ -433,8 +433,8 @@ func TestGetSource(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.Name, func(t *testing.T) {
 			policy, err := ParseBundle(tc.Bundle)
-			sourceKeys := maps.Keys(policy.Source())
-			modulesKeys := maps.Keys(policy.Modules())
+			sourceKeys := getMapKeys(policy.Source())
+			modulesKeys := getMapKeys(policy.Modules())
 			sort.Strings(sourceKeys)
 			sort.Strings(modulesKeys)
 
@@ -470,10 +470,26 @@ func TestBundleLinksHelpers(t *testing.T) {
 		"circleci/rego/utils/utils.rego",
 		"orbs",
 	}
-	modules := maps.Keys(policy.Modules())
+
+	modules := getMapKeys(policy.Modules())
 	sort.Strings(modules)
 
 	require.EqualValues(t, expectedModules, modules)
+}
+
+// getMapKeys function to extract keys from a map using reflect package
+func getMapKeys(m interface{}) []string {
+	v := reflect.ValueOf(m)
+	if v.Kind() != reflect.Map {
+		return nil
+	}
+
+	keys := v.MapKeys()
+	strKeys := make([]string, len(keys))
+	for i, key := range keys {
+		strKeys[i] = key.String()
+	}
+	return strKeys
 }
 
 func TestHttpBlocked(t *testing.T) {

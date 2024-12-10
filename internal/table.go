@@ -43,5 +43,5 @@ func (tw TableWriter) Textf(format string, args ...any) {
 }
 
 func (tw TableWriter) Textln(value string) {
-	tw.Textf(value + "\n")
+	tw.Textf("%s\n", value)
 }

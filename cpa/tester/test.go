@@ -1,13 +1,14 @@
 package tester
 
 import (
+	"cmp"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/CircleCI-Public/circle-policy-agent/internal"
-	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v2"
 )
 
@@ -25,7 +26,10 @@ func (t Test) NamedCases() []NamedTest {
 	for name, test := range t.Cases {
 		result = append(result, NamedTest{name, test})
 	}
-	slices.SortFunc(result, func(a, b NamedTest) bool { return a.Name < b.Name })
+	slices.SortFunc(result, func(a, b NamedTest) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
+
 	return result
 }
 

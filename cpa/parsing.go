@@ -6,8 +6,9 @@ import (
 	"regexp"
 	"strings"
 
+	"slices"
+
 	"github.com/open-policy-agent/opa/ast"
-	"golang.org/x/exp/slices"
 
 	"github.com/CircleCI-Public/circle-policy-agent/internal/helpers"
 )

@@ -12,22 +12,6 @@ linters-settings:
     min-complexity: 15
   maligned:
     suggest-new: true
-  depguard:
-    list-type: blacklist
-    include-go-root: true
-    packages:
-      - log
-      - github.com/davecgh/go-spew
-    packages-with-error-message:
-      - github.com/cenkalti/backof[f]: use github.com/cenkalti/backoff/v4 instead
-      - gotest.tools/assert: use gotest.tools/v3/assert instead
-      - gotest.tools/assert/cmp: use gotest.tools/v3/assert/cmp instead
-      - gotest.tools/env: use gotest.tools/v3/env instead
-      - gotest.tools/fs: use gotest.tools/v3/fs instead
-      - gotest.tools/golden: use gotest.tools/v3/golden instead
-      - gotest.tools/icmd: use gotest.tools/v3/icmd instead
-      - gotest.tools/poll: use gotest.tools/v3/poll instead
-      - gotest.tools/skip: use gotest.tools/v3/skip instead
   dupl:
     threshold: 100
   goconst:
@@ -113,8 +97,6 @@ issues:
 linters:
   disable-all: true
   enable:
-    - deadcode
-    - depguard
     - errcheck
     - goconst
     - gofmt
@@ -126,4 +108,3 @@ linters:
     - prealloc
     - typecheck
     - unconvert
-    - varcheck
