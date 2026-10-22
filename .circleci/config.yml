@@ -6,7 +6,7 @@ orbs:
 executors:
   go:
     docker:
-      - image: cimg/go:1.23.1
+      - image: cimg/go:1.26.10
     environment:
       CGO_ENABLED: 0
 
@@ -15,7 +15,7 @@ jobs:
     executor: go
     steps:
       - checkout
-      - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
+      - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
       - run: golangci-lint run -c .golangci.yml
       - run:
           name: check go.mod
