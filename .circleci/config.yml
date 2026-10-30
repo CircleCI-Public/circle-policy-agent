@@ -42,15 +42,17 @@ jobs:
   publish:
     executor: go
     steps:
-      - checkout
       - run:
-          name: Install gh
+          name: Clone repo
           command: |
-            curl -fsSL https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz | tar -xz -C /tmp
-            sudo mv /tmp/gh_2.63.2_linux_amd64/bin/gh /usr/local/bin/gh
+            git clone https://${GITHUB_TOKEN}@github.com/CircleCI-Public/circle-policy-agent.git .
       - run:
-          name: Create release
-          command: gh release create "v0.0.$CIRCLE_BUILD_NUM" --generate-notes
+          name: Tag Repo
+          command: |
+            git config user.email "securityengineering@circleci.com"
+            git config user.name "Security-Engineering Bot"
+            git tag -a "v0.0.$CIRCLE_BUILD_NUM" -m "Release v0.0.$CIRCLE_BUILD_NUM"
+            git push origin "v0.0.$CIRCLE_BUILD_NUM"
 
 workflows:
   main:
