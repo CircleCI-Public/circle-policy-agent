@@ -42,10 +42,10 @@ jobs:
   publish:
     executor: go
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - '83:6d:88:ca:4a:cd:25:87:37:a9:5f:47:91:7e:76:4b'
-      - checkout
+      - run:
+          name: Clone repo
+          command: |
+            git clone https://${GITHUB_TOKEN}@github.com/CircleCI-Public/circle-policy-agent.git .
       - run:
           name: Tag Repo
           command: |
@@ -63,6 +63,8 @@ workflows:
           requires:
             - lint
             - test
+          context:
+            - devex-release
           filters:
             branches:
               only:
