@@ -45,7 +45,7 @@ jobs:
       - run:
           name: Clone repo
           command: |
-            git clone https://${GITHUB_TOKEN}@github.com/CircleCI-Public/circle-policy-agent.git .
+            git clone https://x-access-token:${GITHUB_TOKEN}@github.com/CircleCI-Public/circle-policy-agent.git .
       - run:
           name: Tag Repo
           command: |
